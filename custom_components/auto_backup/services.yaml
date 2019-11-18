@@ -1,0 +1,40 @@
+snapshot_full:
+  description: Takes a snapshot of all home assistant addons and folders.
+  fields:
+    name: 
+      description: Backup name.
+      example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
+    password:
+      description: Optional password to secure backup.
+      example: "1234"
+    keep_days:
+      description: The number of days to keep the backup.
+      example: "2"
+
+snapshot_partial:
+  description: Takes a snapshot of the specified home assistant addons and folders.
+  fields:
+    name: 
+      description: Backup Name.
+      example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
+    addons: 
+      description: List of addons to backup.
+      example:
+        - core_mariadb
+        - a0d7b954_grafana
+        - a0d7b954_vscode
+    folders: 
+      description: List of folders to backup.
+      example:
+        - homeassistant
+        - ssl
+        - addons/local
+    password:
+      description: Optional password to secure backup.
+      example: "1234"
+    keep_days:
+      description: The number of days to keep the backup.
+      example: "2"
+
+purge:
+  description: Purge expired backups.
