@@ -4,7 +4,7 @@
 
 Improved Backup Service for [Hass.io](https://www.home-assistant.io/hassio) that can Automatically Remove Snapshots and Supports Generational Backup Schemes.
 
-While Home Assistant does provide built-in services for creating backups these are not documented and do not provide a way to automatically remove them, this custom component aims to fix that.
+While Home Assistant does provide built-in services for creating backups, these are not documented and do not provide a way to automatically remove them, this custom component aims to fix that.
 
 ## Services
 
