@@ -163,7 +163,7 @@ class AutoBackup:
         """Convert folder name to lower case and replace friendly folder names."""
         for idx, snapshot_folder in enumerate(snapshot_folders):
             snapshot_folder = snapshot_folder.lower()
-            snapshot_folder[idx] = DEFAULT_SNAPSHOT_FOLDERS.get(
+            snapshot_folders[idx] = DEFAULT_SNAPSHOT_FOLDERS.get(
                 snapshot_folder, snapshot_folder
             )
 
