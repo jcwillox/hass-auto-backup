@@ -12,6 +12,8 @@ from homeassistant.components.hassio import (
     SERVICE_SNAPSHOT_PARTIAL,
     SCHEMA_SNAPSHOT_FULL,
     SCHEMA_SNAPSHOT_PARTIAL,
+    ATTR_FOLDERS,
+    ATTR_ADDONS,
 )
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
@@ -25,6 +27,9 @@ STORAGE_KEY = "snapshots_expiry"
 STORAGE_VERSION = 1
 
 ATTR_KEEP_DAYS = "keep_days"
+ATTR_EXCLUDE = "exclude"
+
+DEFAULT_SNAPSHOT_FOLDERS = ["ssl", "share", "addons/local", "homeassistant"]
 
 CONF_AUTO_PURGE = "auto_purge"
 
@@ -36,7 +41,13 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_FULL.extend(
-    {vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float)}
+    {
+        vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
+        vol.Optional(ATTR_EXCLUDE): {
+            vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
+            vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
+        },
+    }
 )
 
 SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_PARTIAL.extend(
@@ -46,6 +57,7 @@ SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_PARTIAL.extend(
 COMMAND_SNAPSHOT_FULL = "/snapshots/new/full"
 COMMAND_SNAPSHOT_PARTIAL = "/snapshots/new/partial"
 COMMAND_SNAPSHOT_REMOVE = "/snapshots/{slug}/remove"
+COMMAND_GET_ADDONS = "/addons"
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
@@ -111,11 +123,71 @@ class AutoBackup:
             for slug, expiry in data.items():
                 self._snapshots_expiry[slug] = datetime.fromisoformat(expiry)
 
+    async def get_addons(self, only_installed=True):
+        try:
+            result = await self._hassio.send_command(COMMAND_GET_ADDONS, method="get")
+
+            addons = result.get("data", {}).get("addons")
+            if addons is None:
+                raise HassioAPIError("No addons were returned.")
+
+            if only_installed:
+                return [addon for addon in addons if addon["installed"]]
+            return addons
+
+        except HassioAPIError as err:
+            _LOGGER.error("Error on Hass.io API: %s", err)
+
+        return None
+
+    async def _replace_addon_names(self, snapshot_addons):
+        addons = await self.get_addons()
+        if addons:
+            for addon in addons:
+                for idx, snapshot_addon in enumerate(snapshot_addons):
+                    if snapshot_addon == addon["name"]:
+                        snapshot_addons[idx] = addon["slug"]
+        return snapshot_addons
+
     async def new_snapshot(self, data, full=False):
         _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
 
         command = COMMAND_SNAPSHOT_FULL if full else COMMAND_SNAPSHOT_PARTIAL
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
+
+        if full:
+            # performing full backup.
+            exclude = data.pop(ATTR_EXCLUDE, None)
+            if exclude:
+                # handle exclude config.
+                command = COMMAND_SNAPSHOT_PARTIAL
+
+                excluded_addons = exclude.get(ATTR_ADDONS, [])
+                if excluded_addons:
+                    addons = await self.get_addons()
+                    if addons:
+                        snapshot_addons = []
+                        for addon in addons:
+                            if (
+                                addon["slug"] in excluded_addons
+                                or addon["name"] in excluded_addons
+                            ):
+                                continue
+                            snapshot_addons.append(addon["slug"])
+                        data[ATTR_ADDONS] = snapshot_addons
+                        data[ATTR_ADDONS] = snapshot_addons
+
+                excluded_folders = exclude.get(ATTR_FOLDERS, [])
+                if excluded_folders:
+                    folders = []
+                    for folder in DEFAULT_SNAPSHOT_FOLDERS:
+                        if folder not in excluded_folders:
+                            folders.append(folder)
+                    data[ATTR_FOLDERS] = folders
+        else:
+            # performing partial backup.
+            # replace addon names with their appropriate slugs.
+            data[ATTR_ADDONS] = await self._replace_addon_names(data[ATTR_ADDONS])
 
         _LOGGER.debug(
             "New snapshot; command: %s, keep_days: %s, data: %s",

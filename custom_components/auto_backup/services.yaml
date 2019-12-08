@@ -10,6 +10,18 @@ snapshot_full:
     keep_days:
       description: The number of days to keep the backup.
       example: "2"
+    exclude:
+      description: Addons/Folders to exclude from the backup.
+      example: >
+        {
+          "addons": [
+            "MariaDB"
+          ],
+          "folders": [
+            "addons/local",
+            "share"
+          ]
+        }
 
 snapshot_partial:
   description: Takes a snapshot of the specified home assistant addons and folders.
@@ -18,16 +30,18 @@ snapshot_partial:
       description: Backup Name.
       example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
     addons: 
-      description: List of addons to backup.
+      description: List of addons to backup (name or slug).
       example:
         - core_mariadb
-        - a0d7b954_grafana
         - a0d7b954_vscode
+        - Grafana
+        - Configurator
     folders: 
       description: List of folders to backup.
       example:
         - homeassistant
         - ssl
+        - share
         - addons/local
     password:
       description: Optional password to secure backup.
