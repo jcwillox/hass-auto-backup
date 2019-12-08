@@ -148,7 +148,8 @@ class AutoBackup:
         if addons:
             for addon in addons:
                 for idx, snapshot_addon in enumerate(snapshot_addons):
-                    if snapshot_addon == addon["name"]:
+                    # perform case insensitive match.
+                    if snapshot_addon.casefold() == addon["name"].casefold():
                         snapshot_addons[idx] = addon["slug"]
         return snapshot_addons
 
