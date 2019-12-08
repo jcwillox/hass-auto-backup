@@ -29,7 +29,12 @@ STORAGE_VERSION = 1
 ATTR_KEEP_DAYS = "keep_days"
 ATTR_EXCLUDE = "exclude"
 
-DEFAULT_SNAPSHOT_FOLDERS = ["ssl", "share", "addons/local", "homeassistant"]
+DEFAULT_SNAPSHOT_FOLDERS = {
+    "ssl": "ssl",
+    "share": "share",
+    "local add-ons": "addons/local",
+    "home assistant configuration": "homeassistant",
+}
 
 CONF_AUTO_PURGE = "auto_purge"
 
@@ -153,6 +158,17 @@ class AutoBackup:
                         snapshot_addons[idx] = addon["slug"]
         return snapshot_addons
 
+    @staticmethod
+    def _replace_folder_names(snapshot_folders):
+        """Convert folder name to lower case and replace friendly folder names."""
+        for idx, snapshot_folder in enumerate(snapshot_folders):
+            snapshot_folder = snapshot_folder.lower()
+            snapshot_folder[idx] = DEFAULT_SNAPSHOT_FOLDERS.get(
+                snapshot_folder, snapshot_folder
+            )
+
+        return snapshot_folders
+
     async def new_snapshot(self, data, full=False):
         """Create a new snapshot in Hass.io."""
         _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
@@ -184,8 +200,9 @@ class AutoBackup:
 
                 excluded_folders = exclude.get(ATTR_FOLDERS, [])
                 if excluded_folders:
+                    excluded_folders = self._replace_folder_names(excluded_folders)
                     folders = []
-                    for folder in DEFAULT_SNAPSHOT_FOLDERS:
+                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values():
                         if folder not in excluded_folders:
                             folders.append(folder)
                     data[ATTR_FOLDERS] = folders
@@ -194,6 +211,9 @@ class AutoBackup:
             # replace addon names with their appropriate slugs.
             if ATTR_ADDONS in data:
                 data[ATTR_ADDONS] = await self._replace_addon_names(data[ATTR_ADDONS])
+            # replace friendly folder names.
+            if ATTR_FOLDERS in data:
+                data[ATTR_FOLDERS] = self._replace_folder_names(data[ATTR_FOLDERS])
 
         _LOGGER.debug(
             "New snapshot; command: %s, keep_days: %s, data: %s",
