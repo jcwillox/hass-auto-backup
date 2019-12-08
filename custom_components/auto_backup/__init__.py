@@ -117,6 +117,7 @@ class AutoBackup:
         self._auto_purge = auto_purge
 
     async def load_snapshots_expiry(self):
+        """Load snapshots expiry dates from home assistants storage."""
         data = await self._snapshots_store.async_load()
 
         if data is not None:
@@ -124,6 +125,7 @@ class AutoBackup:
                 self._snapshots_expiry[slug] = datetime.fromisoformat(expiry)
 
     async def get_addons(self, only_installed=True):
+        """Retrieve a list of addons from Hass.io."""
         try:
             result = await self._hassio.send_command(COMMAND_GET_ADDONS, method="get")
 
@@ -141,6 +143,7 @@ class AutoBackup:
         return None
 
     async def _replace_addon_names(self, snapshot_addons):
+        """Replace addon names with their appropriate slugs."""
         addons = await self.get_addons()
         if addons:
             for addon in addons:
@@ -150,6 +153,7 @@ class AutoBackup:
         return snapshot_addons
 
     async def new_snapshot(self, data, full=False):
+        """Create a new snapshot in Hass.io."""
         _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
 
         command = COMMAND_SNAPSHOT_FULL if full else COMMAND_SNAPSHOT_PARTIAL
@@ -226,6 +230,7 @@ class AutoBackup:
             _LOGGER.error("Error on Hass.io API: %s", err)
 
     async def purge_snapshots(self):
+        """Purge expired snapshots from Hass.io."""
         now = datetime.now(timezone.utc)
 
         snapshots_purged = []
@@ -244,6 +249,7 @@ class AutoBackup:
             )
 
     async def _purge_snapshot(self, slug):
+        """Purge an individual snapshot from Hass.io."""
         _LOGGER.debug("Attempting to remove snapshot: %s", slug)
         command = COMMAND_SNAPSHOT_REMOVE.format(slug=slug)
 
@@ -261,12 +267,3 @@ class AutoBackup:
             _LOGGER.error("Error on Hass.io API: %s", err)
             return False
         return True
-
-
-# name: "AutoBackup 12:20 9/11/2019"
-# addons:
-#   - a0d7b954_grafana
-#   - core_configurator
-# folders:
-#   - homeassistant
-# keep_days: 0.001
