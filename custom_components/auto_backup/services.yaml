@@ -23,17 +23,16 @@ snapshot_partial:
     addons: 
       description: List of addons to backup (name or slug).
       example:
-        - core_mariadb
-        - a0d7b954_vscode
         - grafana
         - Configurator
+        - core_mariadb
     folders: 
       description: List of folders to backup.
       example:
         - homeassistant
-        - ssl
         - Share
         - Local add-ons
+        - ssl
     password:
       description: Optional password to secure backup.
       example: "1234"

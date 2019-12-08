@@ -9,30 +9,36 @@ While Home Assistant does provide built-in services for creating backups, these 
 ## Services
 
 ### auto_backup.snapshot_full
+Take a snapshot of all home assistant addons and folders.
 
-| Parameter   | Description                            | Requirement  | Type     | Example                                           |
-| ----------- | -------------------------------------- | ------------ | -------- | ------------------------------------------------- |
-| `name`      | Backup name.                           | **Optional** | `string` | Automatic Backup {{ now().strftime('%Y-%m-%d') }} |
-| `password`  | Optional password to secure backup.    | **Optional** | `string` | 1234                                              |
-| `keep_days` | The number of days to keep the backup. | **Optional** | `float`  | 2                                                 |
-|             |                                        |              |          | `keep_days` can be a float like 0.5, for 12 hours |
+| Parameter                 | Description                                | Requirement  | Type                                | Example                                                                                        |
+| ------------------------- | ------------------------------------------ | ------------ | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `name`                    | Backup name.                               | **Optional** | `string`                            | Automatic Backup {{ now().strftime('%Y-%m-%d') }}                                              |
+| `password`                | Optional password to secure backup.        | **Optional** | `string`                            | 1234                                                                                           |
+| [`keep_days`](#keep-days) | The number of days to keep the backup.     | **Optional** | `float`                             | 2                                                                                              |
+| `exclude`                 | Addons/Folders to exclude from the backup. | **Optional** | [`exclude_object`](#exclude-object) | [{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}](#example-exclude-from-backup) |
 
+#### Exclude Object
+| Parameter                       | Description                              | Requirement  | Type   | Example                                       |
+| ------------------------------- | ---------------------------------------- | ------------ | ------ | --------------------------------------------- |
+| [`addons`](#addonfolder-names)  | List of addons to backup (name or slug). | **Optional** | `list` | [ "Almond", "glances", "core_mariadb" ]       |
+| [`folders`](#addonfolder-names) | List of folders to backup.               | **Optional** | `list` | [ "Local add-ons", "homeassistant", "share" ] |
 ---
 
 ### auto_backup.snapshot_partial
+Take a snapshot of the specified home assistant addons and folders.
 
-| Parameter   | Description                            | Requirement  | Type     | Example                                           |
-| ----------- | -------------------------------------- | ------------ | -------- | ------------------------------------------------- |
-| `name`      | Backup name.                           | **Optional** | `string` | Automatic Backup {{ now().strftime('%Y-%m-%d') }} |
-| `addons`    | List of addons to backup.              | **Optional** | `list`   | [ "core_mariadb", "core_mosquitto" ]              |
-| `folders`   | List of folders to backup.             | **Optional** | `list`   | [ "homeassistant", "share", "ssl" ]               |
-| `password`  | Optional password to secure backup.    | **Optional** | `string` | 1234                                              |
-| `keep_days` | The number of days to keep the backup. | **Optional** | `float`  | 2                                                 |
-|             |                                        |              |          | `keep_days` can be a float like 0.5, for 12 hours |
-
+| Parameter                       | Description                              | Requirement  | Type     | Example                                           |
+| ------------------------------- | ---------------------------------------- | ------------ | -------- | ------------------------------------------------- |
+| `name`                          | Backup name.                             | **Optional** | `string` | Automatic Backup {{ now().strftime('%Y-%m-%d') }} |
+| [`addons`](#addonfolder-names)  | List of addons to backup (name or slug). | **Optional** | `list`   | [ "Almond", "glances", "core_mariadb", ]          |
+| [`folders`](#addonfolder-names) | List of folders to backup.               | **Optional** | `list`   | [ "Local add-ons", "homeassistant", "share" ]     |
+| `password`                      | Optional password to secure backup.      | **Optional** | `string` | 1234                                              |
+| [`keep_days`](#keep-days)       | The number of days to keep the backup.   | **Optional** | `float`  | 2                                                 |
 ---
 
 ### auto_backup.purge
+Purge expired backups.
 
 There are no parameters here, just call the service and it will remove any expired snapshots.
 
@@ -40,29 +46,18 @@ This service is useful if you want to manually specify when to purge snapshots,
 such as doing a batch delete at 12AM (_Note: expired snapshots are automatically purged when creating new snapshots,
 this can be disabled in the [config](#configuration)_.
 
-## Example: Automatic Backups
+## Addon/Folder Names
+**Addon names** are case insensitive and can be the addon name/title, these are the same names seen when creating a partial snapshot through the `Hass.io` page. They can also be the addons slug (slug must be lowercase).
 
-Perform a partial backup of the home assistant config folder, mariadb and mosquitto every 3 hours,
-and store each backup for 2 days.
+**Folder names** are also case insensitive and use the names seen when creating a partial snapshot through the `Hass.io` page.
+Currently accepted values are (ignoring case):
+- "ssl"
+- "share"
+- "local add-ons" or "addons/local"
+- "home assistant configuration" or "homeassistant"
 
-> ```yaml
-> - alias: Perform Auto Backup
->   trigger:
->     - platform: time_pattern
->       hours: "/3"
->   action:
->     - service: auto_backup.snapshot_partial
->       data_template:
->         name: "AutoBackup: {{ now().strftime('%a, %-I:%M %p (%d/%m/%Y)') }}"
->         addons:
->           - core_mariadb
->           - core_mosquitto
->         folders:
->           - homeassistant
->           - share
->           - ssl
->         keep_days: 2
-> ```
+## Keep days
+The `keep_days` attribute allows you to specify how long the backup should be kept for before being deleted. Default is forever. You can specify a float value for keep days, e.g. to keep a backup for 12 hours use `0.5`.
 
 ## Configuration
 
@@ -79,6 +74,55 @@ Just add `auto_backup` to your home assistant configuration.yaml file.
 - **auto_purge** _(boolean) (Optional)_
   - _Default value:_ `true`
   - This option will automatically purge any expired snapshots when creating a new snapshot.
+
+## Examples
+### Example: Automatic Backups
+
+Perform a partial backup of the home assistant config folder, mariadb and mosquitto every 3 hours,
+and store each backup for 2 days.
+
+> ```yaml
+> - alias: Perform Auto Backup
+>   trigger:
+>     - platform: time_pattern
+>       hours: "/3"
+>   action:
+>     - service: auto_backup.snapshot_partial
+>       data_template:
+>         name: "AutoBackup: {{ now().strftime('%a, %-I:%M %p (%d/%m/%Y)') }}"
+>         addons:
+>           - almond
+>           - Glances
+>           - mosquitto broker
+>           - core_mariadb
+>         folders:
+>           - homeassistant
+>           - Share
+>           - ssl
+>           - Local add-ons
+>         keep_days: 2
+> ```
+
+### Example: Exclude from Backup
+
+> ```yaml
+> - alias: Perform Daily Backup
+>   trigger:
+>     - platform: time
+>       at: "00:00:00"
+>   action:
+>     - service: auto_backup.snapshot_full
+>       data_template:
+>         name: "DailyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
+>         keep_days: 7
+>         exclude:
+>           addons:
+>             - Portainer
+>           folders:
+>             - Local add-ons
+>             - share
+> ```
+---
 
 ## Advanced Example: Generational Backups
 ### Preface
@@ -98,7 +142,7 @@ This is substantially more efficient than storing a backup every 3 hours for a m
 Also most things other than your database don't change that often so a 4 week old backup of your home assistant config may be the same as 1 day old backup.
 Also in my case the 3 hourly backup only backs up the important files to save on storage, whereas my daily/weekly backups are full snapshots.
 
-Of course you can tweak these values to you liking, or even add a month/yearly backup schedule 👍.
+Of course you can tweak these values to your liking, or even add a month/yearly backup schedule 👍.
 ### Automation
 ```yaml
 automation:
@@ -111,7 +155,7 @@ automation:
       data_template:
         name: "AutoBackup: {{ now().strftime('%a, %-I:%M %p (%d/%m/%Y)') }}"
         addons:
-          - core_mariadb
+          - core_mariadb  # It doesn't matter if you use the addon slug or name. Name is easier.
           - core_mosquitto
         folders:
           - homeassistant
@@ -152,8 +196,3 @@ automation:
         name: "WeeklyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
         keep_days: 28 # Store backup for a month, basically perform 1 backup each week and store for 4 weeks.
 ```
-
-## Planned Features
-
-- Support for excluding addons/folders from full snapshots.
-- Home Assistant config flow support.
