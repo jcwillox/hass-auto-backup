@@ -1,5 +1,5 @@
 snapshot_full:
-  description: Takes a snapshot of all home assistant addons and folders.
+  description: Take a snapshot of all home assistant addons and folders.
   fields:
     name: 
       description: Backup name.
@@ -12,19 +12,10 @@ snapshot_full:
       example: "2"
     exclude:
       description: Addons/Folders to exclude from the backup.
-      example: >
-        {
-          "addons": [
-            "MariaDB"
-          ],
-          "folders": [
-            "addons/local",
-            "share"
-          ]
-        }
+      example: '{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}'
 
 snapshot_partial:
-  description: Takes a snapshot of the specified home assistant addons and folders.
+  description: Take a snapshot of the specified home assistant addons and folders.
   fields:
     name: 
       description: Backup Name.
@@ -34,15 +25,15 @@ snapshot_partial:
       example:
         - core_mariadb
         - a0d7b954_vscode
-        - Grafana
+        - grafana
         - Configurator
     folders: 
       description: List of folders to backup.
       example:
         - homeassistant
         - ssl
-        - share
-        - addons/local
+        - Share
+        - Local add-ons
     password:
       description: Optional password to secure backup.
       example: "1234"
