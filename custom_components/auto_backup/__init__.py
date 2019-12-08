@@ -192,7 +192,8 @@ class AutoBackup:
         else:
             # performing partial backup.
             # replace addon names with their appropriate slugs.
-            data[ATTR_ADDONS] = await self._replace_addon_names(data[ATTR_ADDONS])
+            if ATTR_ADDONS in data:
+                data[ATTR_ADDONS] = await self._replace_addon_names(data[ATTR_ADDONS])
 
         _LOGGER.debug(
             "New snapshot; command: %s, keep_days: %s, data: %s",
