@@ -1,6 +1,6 @@
 # <span style="font-family: 'Segoe UI Emoji'">🗃</span> Auto Backup
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 Improved Backup Service for [Hass.io](https://www.home-assistant.io/hassio) that can Automatically Remove Snapshots and Supports Generational Backup Schemes.
 
@@ -60,10 +60,10 @@ this can be disabled in the [config](#configuration)_.
 **Folder names** are also case insensitive and use the names seen when creating a partial snapshot through the `Hass.io` page.
 Currently accepted values are (ignoring case):
 
-- "ssl"
-- "share"
-- "local add-ons" or "addons/local"
-- "home assistant configuration" or "homeassistant"
+- `ssl`
+- `share`
+- `local add-ons` or `addons/local`
+- `home assistant configuration` or `homeassistant`
 
 ## Keep Days
 
