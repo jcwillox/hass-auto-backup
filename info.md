@@ -7,6 +7,7 @@ While Home Assistant does provide built-in services for creating backups, these 
 * `keep_days` can be set individually for each service call.
 * Provides Documented Backup Services (Partial, Full snapshots).
 * Support for Generational Backup Schemes.
+* Backup to an alternative directory (for example a usb drive).
 * Allows use of addon names instead of slugs.
 * Allows friendly folder names.
 
@@ -32,3 +33,7 @@ auto_backup:
 - **auto_purge** _(boolean) (Optional)_
   - _Default value:_ `true`
   - This option will automatically purge any expired snapshots when creating a new snapshot.
+
+- **backup_timeout** _(integer) (seconds) (Optional)_
+  - _Default value:_ `1200` (20 min)
+  - You can increase this value if you get timeout errors when creating a snapshot. This can happen with very large snapshots.

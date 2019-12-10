@@ -13,6 +13,9 @@ snapshot_full:
     exclude:
       description: Addons/Folders to exclude from the backup.
       example: '{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}'
+    backup_path:
+      description: Alternative directory to copy backup to after creation.
+      example: /usb_drive
 
 snapshot_partial:
   description: Take a snapshot of the specified home assistant addons and folders.
