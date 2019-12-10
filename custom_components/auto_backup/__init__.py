@@ -3,11 +3,12 @@ import asyncio
 import logging
 import os
 from datetime import datetime, timedelta, timezone
-from os.path import join
+from os.path import join, isfile
 
 import aiohttp
 import async_timeout
 import voluptuous as vol
+from slugify import slugify
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.hassio import (
@@ -281,7 +282,23 @@ class AutoBackup:
 
             # copy backup to location if specified
             if backup_path:
-                destination = join(backup_path, f"{slug}.tar")
+                # ensure the name is a valid filename.
+                name = data.get(ATTR_NAME)
+                if name:
+                    filename = slugify(name, lowercase=False, separator="_")
+                else:
+                    filename = slug
+
+                # ensure the filename is a tar file.
+                if not filename.endswith(".tar"):
+                    filename += ".tar"
+
+                destination = join(backup_path, filename)
+
+                # check if file already exists
+                if isfile(destination):
+                    destination = join(backup_path, f"{slug}.tar")
+
                 await self.download_snapshot(slug, destination)
 
             # purging old snapshots
