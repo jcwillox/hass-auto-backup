@@ -1,11 +1,15 @@
 """Component to create and remove Hass.io snapshots."""
-
+import asyncio
 import logging
+import os
 from datetime import datetime, timedelta, timezone
+from os.path import join
+
+import aiohttp
+import async_timeout
 import voluptuous as vol
 
-from homeassistant.components.hassio.handler import HassioAPIError, HassIO
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
+import homeassistant.helpers.config_validation as cv
 from homeassistant.components.hassio import (
     DOMAIN as HASSIO_DOMAIN,
     SERVICE_SNAPSHOT_FULL,
@@ -15,10 +19,12 @@ from homeassistant.components.hassio import (
     ATTR_FOLDERS,
     ATTR_ADDONS,
 )
+from homeassistant.components.hassio.const import X_HASSIO
+from homeassistant.components.hassio.handler import HassioAPIError, HassIO
+from homeassistant.const import ATTR_NAME
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import ATTR_NAME
+from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +34,7 @@ STORAGE_VERSION = 1
 
 ATTR_KEEP_DAYS = "keep_days"
 ATTR_EXCLUDE = "exclude"
+ATTR_BACKUP_PATH = "backup_path"
 
 DEFAULT_SNAPSHOT_FOLDERS = {
     "ssl": "ssl",
@@ -62,16 +69,21 @@ SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_FULL.extend(
             vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
             vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
         },
+        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
     }
 )
 
 SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_PARTIAL.extend(
-    {vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float)}
+    {
+        vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
+        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
+    }
 )
 
 COMMAND_SNAPSHOT_FULL = "/snapshots/new/full"
 COMMAND_SNAPSHOT_PARTIAL = "/snapshots/new/partial"
 COMMAND_SNAPSHOT_REMOVE = "/snapshots/{slug}/remove"
+COMMAND_SNAPSHOT_DOWNLOAD = "/snapshots/{slug}/download"
 COMMAND_GET_ADDONS = "/addons"
 
 
@@ -194,6 +206,7 @@ class AutoBackup:
 
         command = COMMAND_SNAPSHOT_FULL if full else COMMAND_SNAPSHOT_PARTIAL
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
+        backup_path = data.pop(ATTR_BACKUP_PATH, None)
 
         if full:
             # performing full backup.
@@ -266,6 +279,11 @@ class AutoBackup:
                 # write snapshot expiry to storage
                 await self._snapshots_store.async_save(self._snapshots_expiry)
 
+            # copy backup to location if specified
+            if backup_path:
+                destination = join(backup_path, f"{slug}.tar")
+                await self.download_snapshot(slug, destination)
+
             # purging old snapshots
             if self._auto_purge:
                 await self.purge_snapshots()
@@ -311,3 +329,36 @@ class AutoBackup:
             _LOGGER.error("Error on Hass.io API: %s", err)
             return False
         return True
+
+    async def download_snapshot(self, slug, output_path):
+        """Download and save a snapshot from Hass.io."""
+        command = COMMAND_SNAPSHOT_DOWNLOAD.format(slug=slug)
+
+        try:
+            with async_timeout.timeout(self._backup_timeout):
+                request = await self._hassio.websession.request(
+                    "get",
+                    f"http://{self._hassio._ip}{command}",
+                    headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
+                )
+
+                if request.status not in (200, 400):
+                    _LOGGER.error("%s return code %d.", command, request.status)
+                    raise HassioAPIError()
+
+                with open(output_path, "wb") as file:
+                    file.write(await request.read())
+
+                _LOGGER.info("Downloaded snapshot '%s' to '%s'", slug, output_path)
+                return
+
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout on %s request", command)
+
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Client error on %s request %s", command, err)
+
+        except IOError:
+            _LOGGER.error("Failed to download snapshot '%s' to '%s'", slug, output_path)
+
+        raise HassioAPIError()

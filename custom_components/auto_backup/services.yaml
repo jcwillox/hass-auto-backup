@@ -39,6 +39,9 @@ snapshot_partial:
     keep_days:
       description: The number of days to keep the backup.
       example: "2"
+    backup_path:
+      description: Alternative directory to copy backup to after creation.
+      example: /usb_drive
 
 purge:
   description: Purge expired backups.
