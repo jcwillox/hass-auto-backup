@@ -37,11 +37,21 @@ DEFAULT_SNAPSHOT_FOLDERS = {
 }
 
 CONF_AUTO_PURGE = "auto_purge"
+CONF_BACKUP_TIMEOUT = "backup_timeout"
+
+DEFAULT_BACKUP_TIMEOUT = 1200
 
 SERVICE_PURGE = "purge"
 
 CONFIG_SCHEMA = vol.Schema(
-    {DOMAIN: {vol.Optional(CONF_AUTO_PURGE, default=True): cv.boolean}},
+    {
+        DOMAIN: {
+            vol.Optional(CONF_AUTO_PURGE, default=True): cv.boolean,
+            vol.Optional(
+                CONF_BACKUP_TIMEOUT, default=DEFAULT_BACKUP_TIMEOUT
+            ): vol.Coerce(int),
+        }
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
@@ -78,7 +88,9 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
         return False
 
     # initialise AutoBackup class.
-    auto_backup = AutoBackup(hass, hassio, config[CONF_AUTO_PURGE])
+    auto_backup = AutoBackup(
+        hass, hassio, config[CONF_AUTO_PURGE], config[CONF_BACKUP_TIMEOUT]
+    )
     await auto_backup.load_snapshots_expiry()
 
     # register services.
@@ -112,7 +124,13 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
 
 
 class AutoBackup:
-    def __init__(self, hass: HomeAssistantType, hassio: HassIO, auto_purge: bool):
+    def __init__(
+        self,
+        hass: HomeAssistantType,
+        hassio: HassIO,
+        auto_purge: bool,
+        backup_timeout: int,
+    ):
         self._hass = hass
         self._hassio = hassio
         self._snapshots_store = Store(
@@ -120,6 +138,7 @@ class AutoBackup:
         )
         self._snapshots_expiry = {}
         self._auto_purge = auto_purge
+        self._backup_timeout = backup_timeout
 
     async def load_snapshots_expiry(self):
         """Load snapshots expiry dates from home assistants storage."""
@@ -222,8 +241,11 @@ class AutoBackup:
             data,
         )
 
+        # make request to create new snapshot.
         try:
-            result = await self._hassio.send_command(command, payload=data, timeout=300)
+            result = await self._hassio.send_command(
+                command, payload=data, timeout=self._backup_timeout
+            )
 
             _LOGGER.debug("Snapshot create result: %s" % result)
 
