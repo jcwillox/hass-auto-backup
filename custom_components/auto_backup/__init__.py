@@ -265,7 +265,9 @@ class AutoBackup:
 
             slug = result.get("data", {}).get("slug")
             if slug is None:
-                raise HassioAPIError("No slug was returned.")
+                raise HassioAPIError(
+                    "Backup failed. There may be a backup already in progress."
+                )
 
             # snapshot creation was successful
             _LOGGER.info(
