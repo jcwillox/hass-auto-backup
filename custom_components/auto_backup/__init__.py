@@ -203,6 +203,12 @@ class AutoBackup:
 
     async def new_snapshot(self, data, full=False):
         """Create a new snapshot in Hass.io."""
+        if ATTR_NAME not in data:
+            # provide a default name if none was supplied.
+            data[ATTR_NAME] = datetime.now(self._hass.config.time_zone).strftime(
+                "%A, %b %d, %Y"
+            )
+
         _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
 
         command = COMMAND_SNAPSHOT_FULL if full else COMMAND_SNAPSHOT_PARTIAL
@@ -285,7 +291,7 @@ class AutoBackup:
             # copy backup to location if specified
             if backup_path:
                 # ensure the name is a valid filename.
-                name = data.get(ATTR_NAME)
+                name = data[ATTR_NAME]
                 if name:
                     filename = slugify(name, lowercase=False, separator="_")
                 else:
