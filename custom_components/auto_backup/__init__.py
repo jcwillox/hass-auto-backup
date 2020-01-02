@@ -67,8 +67,10 @@ SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_FULL.extend(
     {
         vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
         vol.Optional(ATTR_EXCLUDE): {
-            vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
-            vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
+            vol.Optional(ATTR_FOLDERS, default=[]): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(ATTR_ADDONS, default=[]): vol.All(cv.ensure_list, [cv.string]),
         },
         vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
     }
@@ -223,29 +225,27 @@ class AutoBackup:
                 # handle exclude config.
                 command = COMMAND_SNAPSHOT_PARTIAL
 
-                excluded_addons = exclude.get(ATTR_ADDONS, [])
-                if excluded_addons:
-                    addons = await self.get_addons()
-                    if addons:
-                        snapshot_addons = []
-                        for addon in addons:
-                            if (
-                                addon["slug"] in excluded_addons
-                                or addon["name"] in excluded_addons
-                            ):
-                                continue
-                            snapshot_addons.append(addon["slug"])
-                        data[ATTR_ADDONS] = snapshot_addons
-                        data[ATTR_ADDONS] = snapshot_addons
+                # append addons.
+                addons = await self.get_addons()
+                if addons:
+                    excluded_addons = await self._replace_addon_names(
+                        exclude[ATTR_ADDONS], addons
+                    )
 
-                excluded_folders = exclude.get(ATTR_FOLDERS, [])
-                if excluded_folders:
-                    excluded_folders = self._replace_folder_names(excluded_folders)
-                    folders = []
-                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values():
-                        if folder not in excluded_folders:
-                            folders.append(folder)
-                    data[ATTR_FOLDERS] = folders
+                    data[ATTR_ADDONS] = [
+                        addon["slug"]
+                        for addon in addons
+                        if addon["slug"] not in excluded_addons
+                    ]
+
+                # append folders.
+                excluded_folders = self._replace_folder_names(exclude[ATTR_FOLDERS])
+                data[ATTR_FOLDERS] = [
+                    folder
+                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values()
+                    if folder not in excluded_folders
+                ]
+
         else:
             # performing partial backup.
             # replace addon names with their appropriate slugs.
