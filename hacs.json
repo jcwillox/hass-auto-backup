@@ -1,3 +1,6 @@
 {
-  "name": "Auto Backup"
+  "name": "Auto Backup",
+  "zip_release": true,
+  "hide_default_branch": true,
+  "filename": "auto_backup.zip"
 }
