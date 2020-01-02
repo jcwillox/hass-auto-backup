@@ -179,9 +179,10 @@ class AutoBackup:
 
         return None
 
-    async def _replace_addon_names(self, snapshot_addons):
+    async def _replace_addon_names(self, snapshot_addons, addons=None):
         """Replace addon names with their appropriate slugs."""
-        addons = await self.get_addons()
+        if not addons:
+            addons = await self.get_addons()
         if addons:
             for addon in addons:
                 for idx, snapshot_addon in enumerate(snapshot_addons):
