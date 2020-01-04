@@ -103,10 +103,13 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
         return False
 
     # initialise AutoBackup class.
-    auto_backup = AutoBackup(
+    auto_backup = hass.data[DOMAIN] = AutoBackup(
         hass, hassio, config[CONF_AUTO_PURGE], config[CONF_BACKUP_TIMEOUT]
     )
     await auto_backup.load_snapshots_expiry()
+
+    # load the auto backup sensor.
+    hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
 
     # register services.
     async def snapshot_service_handler(call: ServiceCallType):
@@ -156,6 +159,9 @@ class AutoBackup:
         self._snapshots_expiry = {}
         self._auto_purge = auto_purge
         self._backup_timeout = backup_timeout
+        self._pending_snapshots = 0
+        self.last_failure = None
+        self.update_sensor_callback = None
 
     async def load_snapshots_expiry(self):
         """Load snapshots expiry dates from home assistants storage."""
@@ -182,6 +188,14 @@ class AutoBackup:
             _LOGGER.error("Failed to retrieve addons: %s", err)
 
         return None
+
+    @property
+    def snapshots_expiry(self):
+        return self._snapshots_expiry
+
+    @property
+    def pending_snapshots(self):
+        return self._pending_snapshots
 
     async def _replace_addon_names(self, snapshot_addons, addons=None):
         """Replace addon names with their appropriate slugs."""
@@ -265,6 +279,11 @@ class AutoBackup:
             self._backup_timeout,
         )
 
+        # add to pending snapshots and update sensor.
+        self._pending_snapshots = 1
+        if (self.update_sensor_callback):
+            self.update_sensor_callback()
+
         # make request to create new snapshot.
         try:
             result = await self._hassio.send_command(
@@ -322,6 +341,12 @@ class AutoBackup:
                 f"{DOMAIN}.snapshot_failed",
                 {"name": data[ATTR_NAME], "error": str(err)},
             )
+            self.last_failure = data[ATTR_NAME]
+
+        # remove from pending snapshots and update sensor.
+        self._pending_snapshots = 0
+        if (self.update_sensor_callback):
+            self.update_sensor_callback()
 
         # purging old snapshots
         if self._auto_purge:
