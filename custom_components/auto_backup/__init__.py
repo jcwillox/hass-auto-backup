@@ -177,7 +177,7 @@ class AutoBackup:
             return addons
 
         except HassioAPIError as err:
-            _LOGGER.error("Error on Hass.io API: %s", err)
+            _LOGGER.error("Failed to retrieve addons: %s", err)
 
         return None
 
@@ -256,10 +256,11 @@ class AutoBackup:
                 data[ATTR_FOLDERS] = self._replace_folder_names(data[ATTR_FOLDERS])
 
         _LOGGER.debug(
-            "New snapshot; command: %s, keep_days: %s, data: %s",
+            "New snapshot; command: %s, keep_days: %s, data: %s, timeout: %s",
             command,
             keep_days,
             data,
+            self._backup_timeout,
         )
 
         # make request to create new snapshot.
@@ -273,7 +274,7 @@ class AutoBackup:
             slug = result.get("data", {}).get("slug")
             if slug is None:
                 raise HassioAPIError(
-                    "Backup failed. There may be a backup already in progress."
+                    f"There may be a backup already in progress: {data.get('message')}"
                 )
 
             # snapshot creation was successful
@@ -315,7 +316,7 @@ class AutoBackup:
                 await self.purge_snapshots()
 
         except HassioAPIError as err:
-            _LOGGER.error("Error on Hass.io API: %s", err)
+            _LOGGER.error("Error during backup. %s", err)
 
     async def purge_snapshots(self):
         """Purge expired snapshots from Hass.io."""
@@ -344,7 +345,12 @@ class AutoBackup:
         try:
             result = await self._hassio.send_command(command, timeout=300)
 
-            _LOGGER.debug("Snapshot remove result: %s", result)
+            if result["result"] == "error":
+                _LOGGER.debug("Purge result: %s", result)
+                _LOGGER.warning(
+                    "Issue purging snapshot (%s), assuming it was already deleted.",
+                    slug,
+                )
 
             # remove snapshot expiry.
             del self._snapshots_expiry[slug]
@@ -352,7 +358,7 @@ class AutoBackup:
             await self._snapshots_store.async_save(self._snapshots_expiry)
 
         except HassioAPIError as err:
-            _LOGGER.error("Error on Hass.io API: %s", err)
+            _LOGGER.error("Failed to purge snapshot: %s", err)
             return False
         return True
 
@@ -387,4 +393,4 @@ class AutoBackup:
         except IOError:
             _LOGGER.error("Failed to download snapshot '%s' to '%s'", slug, output_path)
 
-        raise HassioAPIError()
+        raise HassioAPIError("Snapshot download failed.")
