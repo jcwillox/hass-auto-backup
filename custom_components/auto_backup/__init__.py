@@ -281,7 +281,7 @@ class AutoBackup:
 
         # add to pending snapshots and update sensor.
         self._pending_snapshots = 1
-        if (self.update_sensor_callback):
+        if self.update_sensor_callback:
             self.update_sensor_callback()
 
         # make request to create new snapshot.
@@ -345,7 +345,7 @@ class AutoBackup:
 
         # remove from pending snapshots and update sensor.
         self._pending_snapshots = 0
-        if (self.update_sensor_callback):
+        if self.update_sensor_callback:
             self.update_sensor_callback()
 
         # purging old snapshots
@@ -375,6 +375,12 @@ class AutoBackup:
             self._hass.bus.async_fire(
                 f"{DOMAIN}.purged_snapshots", {"snapshots": snapshots_purged}
             )
+
+            # update sensor after purge.
+            if self.update_sensor_callback:
+                self.update_sensor_callback()
+        else:
+            _LOGGER.debug("No snapshots required purging.")
 
     async def _purge_snapshot(self, slug):
         """Purge an individual snapshot from Hass.io."""
