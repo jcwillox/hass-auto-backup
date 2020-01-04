@@ -10,6 +10,7 @@ While Home Assistant does provide built-in services for creating backups, these 
 * Backup to an alternative directory (for example a usb drive).
 * Allows use of addon names instead of slugs.
 * Allows friendly folder names.
+* Adds a sensor to monitor the status of your backups.
 
 ## Services
 * **auto_backup.snapshot_full**
@@ -17,6 +18,11 @@ While Home Assistant does provide built-in services for creating backups, these 
 * **auto_backup.purge**
 
 For more information and examples check the [full documentation](https://github.com/jcwillox/ha-auto-backup).
+
+## Events
+* **auto_backup.snapshot_successful**
+* **auto_backup.snapshot_failed**
+* **auto_backup.purged_snapshots**
 
 ## Configuration
 

@@ -78,9 +78,18 @@ The `backup_path` attribute allows you to specify a directory to copy the snapsh
 
 The snapshot will still be stored under `/backup` and show up in the `Hass.io` snapshots page, _it will only be copied to the location specified_, to immediately delete the snapshot from `Hass.io` use a negative value for `keep_days` (-1 will suffice).
 
-A slugified version of the snapshots name will be used for the filename, if a file with that name already exists the snapshots slug will be used instead. 
+A slugified version of the snapshots name will be used for the filename, if a file with that name already exists the snapshots slug will be used instead.
 
 > Note: on docker by default you and this integration do not have direct access to the `/backup` folder.
+
+## Events
+[Automation Example](#example-notify-on-snapshot-failure)
+* Event: `auto_backup.snapshot_successful`, data: `{"name": "NAME", "slug": "SLUG"}`
+* Event: `auto_backup.snapshot_failed`, data: `{"name": "NAME", "error": "ERROR"}`
+* Event: `auto_backup.purged_snapshots`, data: `{"snapshots": ["SLUG"]}`
+
+## Sensor
+<img src="example-sensor.png" width="400px">
 
 ## Configuration
 
@@ -103,6 +112,19 @@ Just add `auto_backup` to your home assistant configuration.yaml file.
   - You can increase this value if you get timeout errors when creating a snapshot. This can happen with very large snapshots.
 
 ## Examples
+
+### Example: Notify on Snapshot Failure
+> ```yaml
+> - alias: "Notify Snapshot Failure"
+>   trigger:
+>     platform: event
+>     event_type: auto_backup.snapshot_failed
+>   action:
+>     service: persistent_notification.create
+>     data_template:
+>       title: "Snapshot Failed."
+>       message: "Name: {{ trigger.event.data.name }}\nError: {{ trigger.event.data.error }}"
+> ```
 
 ### Example: Automatic Backups
 
