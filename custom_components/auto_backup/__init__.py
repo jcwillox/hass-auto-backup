@@ -280,7 +280,7 @@ class AutoBackup:
         )
 
         # add to pending snapshots and update sensor.
-        self._pending_snapshots = 1
+        self._pending_snapshots += 1
         if self.update_sensor_callback:
             self.update_sensor_callback()
 
@@ -294,9 +294,10 @@ class AutoBackup:
 
             slug = result.get("data", {}).get("slug")
             if slug is None:
-                raise HassioAPIError(
-                    f"There may be a backup already in progress: {data.get('message')}"
-                )
+                error = "There may be a backup already in progress."
+                if data.get("message"):
+                    error = f"{error} {data.get('message')}"
+                raise HassioAPIError(error)
 
             # snapshot creation was successful
             _LOGGER.info(
@@ -344,7 +345,7 @@ class AutoBackup:
             self.last_failure = data[ATTR_NAME]
 
         # remove from pending snapshots and update sensor.
-        self._pending_snapshots = 0
+        self._pending_snapshots -= 1
         if self.update_sensor_callback:
             self.update_sensor_callback()
 
