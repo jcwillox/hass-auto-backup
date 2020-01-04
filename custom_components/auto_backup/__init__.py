@@ -311,12 +311,12 @@ class AutoBackup:
 
                 await self.download_snapshot(slug, destination)
 
-            # purging old snapshots
-            if self._auto_purge:
-                await self.purge_snapshots()
-
         except HassioAPIError as err:
             _LOGGER.error("Error during backup. %s", err)
+
+        # purging old snapshots
+        if self._auto_purge:
+            await self.purge_snapshots()
 
     async def purge_snapshots(self):
         """Purge expired snapshots from Hass.io."""
