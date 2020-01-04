@@ -281,6 +281,9 @@ class AutoBackup:
             _LOGGER.info(
                 "Snapshot created successfully; '%s' (%s)", data[ATTR_NAME], slug
             )
+            self._hass.bus.async_fire(
+                f"{DOMAIN}.snapshot_successful", {"name": data[ATTR_NAME], "slug": slug}
+            )
 
             if keep_days is not None:
                 # set snapshot expiry
@@ -313,6 +316,10 @@ class AutoBackup:
 
         except HassioAPIError as err:
             _LOGGER.error("Error during backup. %s", err)
+            self._hass.bus.async_fire(
+                f"{DOMAIN}.snapshot_failed",
+                {"name": data[ATTR_NAME], "error": str(err)},
+            )
 
         # purging old snapshots
         if self._auto_purge:
@@ -335,6 +342,11 @@ class AutoBackup:
                 "Purged %s snapshots; %s",
                 len(snapshots_purged),
                 tuple(snapshots_purged),
+            )
+
+        if len(snapshots_purged) > 0:
+            self._hass.bus.async_fire(
+                f"{DOMAIN}.purged_snapshots", {"snapshots": snapshots_purged}
             )
 
     async def _purge_snapshot(self, slug):
