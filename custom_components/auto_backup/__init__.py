@@ -153,6 +153,7 @@ class AutoBackup:
     ):
         self._hass = hass
         self._hassio = hassio
+        self._ip = os.environ.get("HASSIO", "")
         self._snapshots_store = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{STORAGE_KEY}", encoder=JSONEncoder
         )
@@ -174,7 +175,7 @@ class AutoBackup:
     async def get_addons(self, only_installed=True):
         """Retrieve a list of addons from Hass.io."""
         try:
-            result = await self._hassio.send_command(COMMAND_GET_ADDONS, method="get")
+            result = await self.send_command(COMMAND_GET_ADDONS, method="get")
 
             addons = result.get("data", {}).get("addons")
             if addons is None:
@@ -286,7 +287,7 @@ class AutoBackup:
 
         # make request to create new snapshot.
         try:
-            result = await self._hassio.send_command(
+            result = await self.send_command(
                 command, payload=data, timeout=self._backup_timeout
             )
 
@@ -389,7 +390,7 @@ class AutoBackup:
         command = COMMAND_SNAPSHOT_REMOVE.format(slug=slug)
 
         try:
-            result = await self._hassio.send_command(command, timeout=300)
+            result = await self.send_command(command, timeout=300)
 
             if result["result"] == "error":
                 _LOGGER.debug("Purge result: %s", result)
@@ -416,8 +417,9 @@ class AutoBackup:
             with async_timeout.timeout(self._backup_timeout):
                 request = await self._hassio.websession.request(
                     "get",
-                    f"http://{self._hassio._ip}{command}",
+                    f"http://{self._ip}{command}",
                     headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
+                    timeout=None,
                 )
 
                 if request.status not in (200, 400):
@@ -440,3 +442,33 @@ class AutoBackup:
             _LOGGER.error("Failed to download snapshot '%s' to '%s'", slug, output_path)
 
         raise HassioAPIError("Snapshot download failed.")
+
+    async def send_command(self, command, method="post", payload=None, timeout=10):
+        """Send API command to Hass.io.
+
+        This method is a coroutine.
+        """
+        try:
+            with async_timeout.timeout(timeout):
+                request = await self._hassio.websession.request(
+                    method,
+                    f"http://{self._ip}{command}",
+                    json=payload,
+                    headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
+                    timeout=None,
+                )
+
+                if request.status not in (200, 400):
+                    _LOGGER.error("%s return code %d.", command, request.status)
+                    raise HassioAPIError()
+
+                answer = await request.json()
+                return answer
+
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout on %s request", command)
+
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Client error on %s request %s", command, err)
+
+        raise HassioAPIError()
