@@ -316,26 +316,9 @@ class AutoBackup:
                 # write snapshot expiry to storage
                 await self._snapshots_store.async_save(self._snapshots_expiry)
 
-            # copy backup to location if specified
+            # copy snapshot to location if specified
             if backup_path:
-                # ensure the name is a valid filename.
-                name = data[ATTR_NAME]
-                if name:
-                    filename = slugify(name, lowercase=False, separator="_")
-                else:
-                    filename = slug
-
-                # ensure the filename is a tar file.
-                if not filename.endswith(".tar"):
-                    filename += ".tar"
-
-                destination = join(backup_path, filename)
-
-                # check if file already exists
-                if isfile(destination):
-                    destination = join(backup_path, f"{slug}.tar")
-
-                await self.download_snapshot(slug, destination)
+                await self.copy_snapshot(data[ATTR_NAME], slug, backup_path)
 
         except HassioAPIError as err:
             _LOGGER.error("Error during backup. %s", err)
@@ -408,6 +391,27 @@ class AutoBackup:
             _LOGGER.error("Failed to purge snapshot: %s", err)
             return False
         return True
+
+    async def copy_snapshot(self, name, slug, backup_path):
+        """Download snapshot to the specified location."""
+
+        # ensure the name is a valid filename.
+        if name:
+            filename = slugify(name, lowercase=False, separator="_")
+        else:
+            filename = slug
+
+        # ensure the filename is a tar file.
+        if not filename.endswith(".tar"):
+            filename += ".tar"
+
+        destination = join(backup_path, filename)
+
+        # check if file already exists
+        if isfile(destination):
+            destination = join(backup_path, f"{slug}.tar")
+
+        await self.download_snapshot(slug, destination)
 
     async def download_snapshot(self, slug, output_path):
         """Download and save a snapshot from Hass.io."""
