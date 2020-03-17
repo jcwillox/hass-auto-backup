@@ -272,6 +272,11 @@ class AutoBackup:
             if ATTR_FOLDERS in data:
                 data[ATTR_FOLDERS] = self._replace_folder_names(data[ATTR_FOLDERS])
 
+        # ensure password is scrubbed from logs.
+        password = data.get(ATTR_PASSWORD)
+        if password:
+            data[ATTR_PASSWORD] = "<hidden>"
+
         _LOGGER.debug(
             "New snapshot; command: %s, keep_days: %s, data: %s, timeout: %s",
             command,
@@ -279,6 +284,11 @@ class AutoBackup:
             data,
             self._backup_timeout,
         )
+
+        # re-add password if it existed.
+        if password:
+            data[ATTR_PASSWORD] = password
+            del password  # remove from memory
 
         # add to pending snapshots and update sensor.
         self._pending_snapshots += 1
