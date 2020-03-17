@@ -43,3 +43,7 @@ auto_backup:
 - **backup_timeout** _(integer) (seconds) (Optional)_
   - _Default value:_ `1200` (20 min)
   - You can increase this value if you get timeout errors when creating a snapshot. This can happen with very large snapshots.
+  
+## Images
+
+<img src="https://github.com/jcwillox/hass-auto-backup/blob/master/example-sensor.png?raw=true" width="400px">
