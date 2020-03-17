@@ -98,7 +98,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
         _LOGGER.error("Hass.io not found, please check you have hassio installed!")
         return False
 
-    if not hassio.is_connected():
+    if not await hassio.is_connected():
         _LOGGER.error("Not connected with Hass.io / system to busy!")
         return False
 
@@ -109,7 +109,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
     await auto_backup.load_snapshots_expiry()
 
     # load the auto backup sensor.
-    hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
+    hass.helpers.discovery.async_load_platform("sensor", DOMAIN, {}, config)
 
     # register services.
     async def snapshot_service_handler(call: ServiceCallType):
