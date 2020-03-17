@@ -37,6 +37,10 @@ class AutoBackupSensor(entity.Entity):
         return DEFAULT_NAME
 
     @property
+    def unique_id(self):
+        return "sensor-auto-backup"
+
+    @property
     def icon(self):
         """Return the icon to use in the frontend."""
         return "mdi:package-variant-closed"
