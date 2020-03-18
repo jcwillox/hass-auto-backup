@@ -455,7 +455,9 @@ class AutoBackup:
         except IOError:
             _LOGGER.error("Failed to download snapshot '%s' to '%s'", slug, output_path)
 
-        raise HassioAPIError("Snapshot download failed.")
+        raise HassioAPIError(
+            "Snapshot download failed. Check the logs for more information."
+        )
 
     async def send_command(self, command, method="post", payload=None, timeout=10):
         """Send API command to Hass.io.
@@ -480,9 +482,9 @@ class AutoBackup:
                 return answer
 
         except asyncio.TimeoutError:
-            _LOGGER.error("Timeout on %s request", command)
+            raise HassioAPIError("Timeout on %s request" % command)
 
         except aiohttp.ClientError as err:
-            _LOGGER.error("Client error on %s request %s", command, err)
+            raise HassioAPIError("Client error on %s request %s" % (command, err))
 
-        raise HassioAPIError()
+        raise HassioAPIError("Failed to call %s" % command)
