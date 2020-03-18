@@ -12,16 +12,16 @@ from slugify import slugify
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.hassio import (
-    DOMAIN as HASSIO_DOMAIN,
     SERVICE_SNAPSHOT_FULL,
     SERVICE_SNAPSHOT_PARTIAL,
     SCHEMA_SNAPSHOT_FULL,
     SCHEMA_SNAPSHOT_PARTIAL,
     ATTR_FOLDERS,
     ATTR_ADDONS,
+    ATTR_PASSWORD,
 )
 from homeassistant.components.hassio.const import X_HASSIO
-from homeassistant.components.hassio.handler import HassioAPIError, HassIO
+from homeassistant.components.hassio.handler import HassioAPIError
 from homeassistant.const import ATTR_NAME
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
@@ -92,19 +92,23 @@ COMMAND_GET_ADDONS = "/addons"
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
     """Setup"""
-    config = config[DOMAIN]
-    hassio = hass.data.get(HASSIO_DOMAIN)
-    if hassio is None:
-        _LOGGER.error("Hass.io not found, please check you have hassio installed!")
+    # Check local setup
+    for env in ("HASSIO", "HASSIO_TOKEN"):
+        if os.environ.get(env):
+            continue
+        _LOGGER.error(
+            "Missing %s environment variable. Please check you have Hass.io installed!",
+            env,
+        )
         return False
 
-    if not await hassio.is_connected():
-        _LOGGER.error("Not connected with Hass.io / system to busy!")
-        return False
+    web_session = hass.helpers.aiohttp_client.async_get_clientsession()
+
+    config = config[DOMAIN]
 
     # initialise AutoBackup class.
     auto_backup = hass.data[DOMAIN] = AutoBackup(
-        hass, hassio, config[CONF_AUTO_PURGE], config[CONF_BACKUP_TIMEOUT]
+        hass, web_session, config[CONF_AUTO_PURGE], config[CONF_BACKUP_TIMEOUT]
     )
     await auto_backup.load_snapshots_expiry()
 
@@ -147,19 +151,21 @@ class AutoBackup:
     def __init__(
         self,
         hass: HomeAssistantType,
-        hassio: HassIO,
+        web_session,
         auto_purge: bool,
         backup_timeout: int,
     ):
         self._hass = hass
-        self._hassio = hassio
-        self._ip = os.environ.get("HASSIO", "")
+        self.web_session = web_session
+        self._ip = os.environ["HASSIO"]
+        self._auto_purge = auto_purge
+        self._backup_timeout = backup_timeout
+
         self._snapshots_store = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{STORAGE_KEY}", encoder=JSONEncoder
         )
         self._snapshots_expiry = {}
-        self._auto_purge = auto_purge
-        self._backup_timeout = backup_timeout
+
         self._pending_snapshots = 0
         self.last_failure = None
         self.update_sensor_callback = None
@@ -429,7 +435,7 @@ class AutoBackup:
 
         try:
             with async_timeout.timeout(self._backup_timeout):
-                request = await self._hassio.websession.request(
+                request = await self.web_session.request(
                     "get",
                     f"http://{self._ip}{command}",
                     headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
@@ -466,7 +472,7 @@ class AutoBackup:
         """
         try:
             with async_timeout.timeout(timeout):
-                request = await self._hassio.websession.request(
+                request = await self.web_session.request(
                     method,
                     f"http://{self._ip}{command}",
                     json=payload,

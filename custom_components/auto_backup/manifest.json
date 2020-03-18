@@ -2,11 +2,7 @@
   "domain": "auto_backup",
   "name": "Auto Backup",
   "documentation": "https://github.com/jcwillox/hass-auto-backup",
-  "dependencies": [
-    "hassio"
-  ],
-  "codeowners": [
-    "@jcwillox"
-  ],
+  "dependencies": [],
+  "codeowners": ["@jcwillox"],
   "requirements": []
 }
