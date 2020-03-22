@@ -113,7 +113,9 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
     await auto_backup.load_snapshots_expiry()
 
     # load the auto backup sensor.
-    await hass.helpers.discovery.async_load_platform("sensor", DOMAIN, {}, config)
+    hass.async_create_task(
+        hass.helpers.discovery.async_load_platform("sensor", DOMAIN, {}, config)
+    )
 
     # register services.
     async def snapshot_service_handler(call: ServiceCallType):
