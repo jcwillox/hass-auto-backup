@@ -47,6 +47,8 @@ DEFAULT_SNAPSHOT_FOLDERS = {
 CONF_AUTO_PURGE = "auto_purge"
 CONF_BACKUP_TIMEOUT = "backup_timeout"
 
+CHUNK_SIZE = 64 * 1024  # 64 KB
+
 DEFAULT_BACKUP_TIMEOUT = 1200
 
 SERVICE_PURGE = "purge"
@@ -449,7 +451,11 @@ class AutoBackup:
                     raise HassioAPIError()
 
                 with open(output_path, "wb") as file:
-                    file.write(await request.read())
+                    while True:
+                        chunk = await request.content.read(CHUNK_SIZE)
+                        if not chunk:
+                            break
+                        file.write(chunk)
 
                 _LOGGER.info("Downloaded snapshot '%s' to '%s'", slug, output_path)
                 return
