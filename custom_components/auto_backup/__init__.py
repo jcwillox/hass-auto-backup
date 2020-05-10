@@ -51,6 +51,10 @@ CHUNK_SIZE = 64 * 1024  # 64 KB
 
 DEFAULT_BACKUP_TIMEOUT = 1200
 
+EVENT_SNAPSHOT_SUCCESSFUL = f"{DOMAIN}.snapshot_successful"
+EVENT_SNAPSHOT_FAILED = f"{DOMAIN}.snapshot_failed"
+EVENT_SNAPSHOTS_PURGED = f"{DOMAIN}.purged_snapshots"
+
 SERVICE_PURGE = "purge"
 
 CONFIG_SCHEMA = vol.Schema(
@@ -327,7 +331,7 @@ class AutoBackup:
                 "Snapshot created successfully; '%s' (%s)", data[ATTR_NAME], slug
             )
             self._hass.bus.async_fire(
-                f"{DOMAIN}.snapshot_successful", {"name": data[ATTR_NAME], "slug": slug}
+                EVENT_SNAPSHOT_SUCCESSFUL, {"name": data[ATTR_NAME], "slug": slug}
             )
 
             if keep_days is not None:
@@ -345,8 +349,7 @@ class AutoBackup:
         except HassioAPIError as err:
             _LOGGER.error("Error during backup. %s", err)
             self._hass.bus.async_fire(
-                f"{DOMAIN}.snapshot_failed",
-                {"name": data[ATTR_NAME], "error": str(err)},
+                EVENT_SNAPSHOT_FAILED, {"name": data[ATTR_NAME], "error": str(err)},
             )
             self.last_failure = data[ATTR_NAME]
 
@@ -380,7 +383,7 @@ class AutoBackup:
 
         if len(snapshots_purged) > 0:
             self._hass.bus.async_fire(
-                f"{DOMAIN}.purged_snapshots", {"snapshots": snapshots_purged}
+                EVENT_SNAPSHOTS_PURGED, {"snapshots": snapshots_purged}
             )
 
             # update sensor after purge.
