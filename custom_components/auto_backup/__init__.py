@@ -313,12 +313,14 @@ class AutoBackup:
 
             _LOGGER.debug("Snapshot create result: %s" % result)
 
-            slug = result.get("data", {}).get("slug")
-            if slug is None:
-                error = "There may be a backup already in progress."
-                if data.get("message"):
-                    error = f"{error} {data.get('message')}"
-                raise HassioAPIError(error)
+            if result.get("result") == "error":
+                raise HassioAPIError(
+                    result.get("message")
+                    or "There may be a backup already in progress."
+                )
+
+            # the result must be ok and contain the slug
+            slug = result["data"]["slug"]
 
             # snapshot creation was successful
             _LOGGER.info(
