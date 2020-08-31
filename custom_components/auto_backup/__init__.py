@@ -4,10 +4,12 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 from os.path import join, isfile
+from typing import List
 
 import aiohttp
 import async_timeout
 import voluptuous as vol
+from aiohttp import ClientSession
 from slugify import slugify
 
 import homeassistant.helpers.config_validation as cv
@@ -26,10 +28,16 @@ from homeassistant.const import ATTR_NAME
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
+from .const import (
+    DOMAIN,
+    EVENT_SNAPSHOT_FAILED,
+    EVENT_SNAPSHOTS_PURGED,
+    EVENT_SNAPSHOT_SUCCESSFUL,
+    EVENT_SNAPSHOT_START,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "auto_backup"
 STORAGE_KEY = "snapshots_expiry"
 STORAGE_VERSION = 1
 
@@ -50,10 +58,6 @@ CONF_BACKUP_TIMEOUT = "backup_timeout"
 CHUNK_SIZE = 64 * 1024  # 64 KB
 
 DEFAULT_BACKUP_TIMEOUT = 1200
-
-EVENT_SNAPSHOT_SUCCESSFUL = f"{DOMAIN}.snapshot_successful"
-EVENT_SNAPSHOT_FAILED = f"{DOMAIN}.snapshot_failed"
-EVENT_SNAPSHOTS_PURGED = f"{DOMAIN}.purged_snapshots"
 
 SERVICE_PURGE = "purge"
 
@@ -132,7 +136,7 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
             )
         )
 
-    async def purge_service_handler(call: ServiceCallType):
+    async def purge_service_handler(_):
         """Handle Snapshot Purge Service Calls."""
         await auto_backup.purge_snapshots()
 
@@ -159,12 +163,12 @@ class AutoBackup:
     def __init__(
         self,
         hass: HomeAssistantType,
-        web_session,
+        web_session: ClientSession,
         auto_purge: bool,
         backup_timeout: int,
     ):
         self._hass = hass
-        self.web_session = web_session
+        self._web_session = web_session
         self._ip = os.environ["HASSIO"]
         self._auto_purge = auto_purge
         self._backup_timeout = backup_timeout
@@ -444,7 +448,7 @@ class AutoBackup:
 
         try:
             with async_timeout.timeout(self._backup_timeout):
-                request = await self.web_session.request(
+                request = await self._web_session.request(
                     "get",
                     f"http://{self._ip}{command}",
                     headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
@@ -485,7 +489,7 @@ class AutoBackup:
         """
         try:
             with async_timeout.timeout(timeout):
-                request = await self.web_session.request(
+                request = await self._web_session.request(
                     method,
                     f"http://{self._ip}{command}",
                     json=payload,

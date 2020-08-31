@@ -74,16 +74,17 @@ The `keep_days` attribute allows you to specify how long the backup should be ke
 
 ## Backup Path
 
-The `backup_path` attribute allows you to specify a directory to copy the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker you paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
+The `backup_path` attribute allows you to specify a directory to download the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
 
-The snapshot will still be stored under `/backup` and show up in the `Hass.io` snapshots page, _it will only be copied to the location specified_, to immediately delete the snapshot from `Hass.io` use a negative value for `keep_days` (-1 will suffice).
+The snapshot will still be stored under `/backup` and show up in the `Hass.io` snapshots page, _it will only be downloaded to the location specified_, to immediately delete the snapshot from `Hass.io` use a negative value for `keep_days` (-1 will suffice).
 
 A slugified version of the snapshots name will be used for the filename, if a file with that name already exists the snapshots slug will be used instead.
 
-> Note: on docker by default you and this integration do not have direct access to the `/backup` folder.
+> Note: on docker by default you and this integration do not have direct access to the `/backup` folder, which is why the snapshot is downloaded and not copied.
 
 ## Events
 [Automation Example](#example-notify-on-snapshot-failure)
+* Event: `auto_backup.snapshot_start`, data: `{"name": "NAME"}`
 * Event: `auto_backup.snapshot_successful`, data: `{"name": "NAME", "slug": "SLUG"}`
 * Event: `auto_backup.snapshot_failed`, data: `{"name": "NAME", "error": "ERROR"}`
 * Event: `auto_backup.purged_snapshots`, data: `{"snapshots": ["SLUG"]}`

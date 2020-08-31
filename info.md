@@ -20,6 +20,7 @@ While Home Assistant does provide built-in services for creating backups, these 
 For more information and examples check the [full documentation](https://github.com/jcwillox/ha-auto-backup).
 
 ## Events
+* **auto_backup.snapshot_start**
 * **auto_backup.snapshot_successful**
 * **auto_backup.snapshot_failed**
 * **auto_backup.purged_snapshots**
