@@ -1,50 +1,92 @@
 snapshot_full:
+  name: Snapshot Full
   description: Take a snapshot of all home assistant addons and folders.
   fields:
-    name: 
-      description: Backup name.
+    name:
+      name: Name
+      description: Optional or it will be the current date and time.
       example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
+      selector:
+        text:
     password:
+      name: Password
       description: Optional password to secure backup.
       example: "1234"
+      selector:
+        text:
     keep_days:
+      name: Keep days
       description: The number of days to keep the backup.
       example: "2"
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 0.01
+          unit_of_measurement: days
+          mode: box
     exclude:
+      name: Exclude
       description: Addons/Folders to exclude from the backup.
       example: '{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}'
+      default: {"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}
+      selector:
+        object:
     backup_path:
-      description: Alternative directory to copy backup to after creation.
+      name: Download to
+      description: Download the backup to a location after creation.
       example: /usb_drive
+      advanced: true
+      selector:
+        text:
 
 snapshot_partial:
+  name: Snapshot Partial
   description: Take a snapshot of the specified home assistant addons and folders.
   fields:
-    name: 
+    name:
+      name: Name
       description: Backup Name.
       example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
-    addons: 
+      selector:
+        text:
+    addons:
+      name: Add-ons
       description: List of addons to backup (name or slug).
-      example:
-        - grafana
-        - Configurator
-        - core_mariadb
-    folders: 
+      example: grafana, Configurator, core_mariadb
+      selector:
+        object:
+    folders:
+      name: Folders
       description: List of folders to backup.
-      example:
-        - homeassistant
-        - Share
-        - Local add-ons
-        - ssl
+      example: homeassistant, Share, Local add-ons, ssl, media
+      selector:
+        object:
     password:
+      name: Password
       description: Optional password to secure backup.
       example: "1234"
+      selector:
+        text:
     keep_days:
+      name: Keep days
       description: The number of days to keep the backup.
       example: "2"
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 0.01
+          unit_of_measurement: days
+          mode: box
     backup_path:
-      description: Alternative directory to copy backup to after creation.
+      name: Download to
+      description: Download the backup to a location after creation.
       example: /usb_drive
+      advanced: true
+      selector:
+        text:
 
 purge:
+  name: Purge
   description: Purge expired backups.
