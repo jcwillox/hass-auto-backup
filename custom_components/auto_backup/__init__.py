@@ -10,6 +10,8 @@ import aiohttp
 import async_timeout
 import voluptuous as vol
 from aiohttp import ClientSession
+from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
+from homeassistant.core import HomeAssistant
 from slugify import slugify
 
 import homeassistant.helpers.config_validation as cv
@@ -34,6 +36,12 @@ from .const import (
     EVENT_SNAPSHOTS_PURGED,
     EVENT_SNAPSHOT_SUCCESSFUL,
     EVENT_SNAPSHOT_START,
+    UNSUB_LISTENER,
+    DATA_AUTO_BACKUP,
+    DEFAULT_BACKUP_TIMEOUT_SECONDS,
+    CONF_AUTO_PURGE,
+    CONF_BACKUP_TIMEOUT,
+    DEFAULT_BACKUP_TIMEOUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,12 +60,7 @@ DEFAULT_SNAPSHOT_FOLDERS = {
     "home assistant configuration": "homeassistant",
 }
 
-CONF_AUTO_PURGE = "auto_purge"
-CONF_BACKUP_TIMEOUT = "backup_timeout"
-
 CHUNK_SIZE = 64 * 1024  # 64 KB
-
-DEFAULT_BACKUP_TIMEOUT = 1200
 
 SERVICE_PURGE = "purge"
 
@@ -66,7 +69,7 @@ CONFIG_SCHEMA = vol.Schema(
         DOMAIN: {
             vol.Optional(CONF_AUTO_PURGE, default=True): cv.boolean,
             vol.Optional(
-                CONF_BACKUP_TIMEOUT, default=DEFAULT_BACKUP_TIMEOUT
+                CONF_BACKUP_TIMEOUT, default=DEFAULT_BACKUP_TIMEOUT_SECONDS
             ): vol.Coerce(int),
         }
     },
@@ -99,9 +102,27 @@ COMMAND_SNAPSHOT_REMOVE = "/snapshots/{slug}/remove"
 COMMAND_SNAPSHOT_DOWNLOAD = "/snapshots/{slug}/download"
 COMMAND_GET_ADDONS = "/addons"
 
+PLATFORMS = ["sensor"]
+
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
-    """Setup"""
+    """Setup the Auto Backup component."""
+    hass.data.setdefault(DOMAIN, {})
+    if DOMAIN in config:
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={"source": SOURCE_IMPORT},
+                data=config[DOMAIN],
+            )
+        )
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up Auto Backup from a config entry."""
+    _LOGGER.info("Setting up Auto Backup config entry %s", entry.entry_id)
+
     # Check local setup
     for env in ("HASSIO", "HASSIO_TOKEN"):
         if os.environ.get(env):
@@ -114,17 +135,20 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
 
     web_session = hass.helpers.aiohttp_client.async_get_clientsession()
 
-    config = config[DOMAIN]
+    options = entry.data or entry.options
 
     # initialise AutoBackup class.
-    auto_backup = hass.data[DOMAIN] = AutoBackup(
-        hass, web_session, config[CONF_AUTO_PURGE], config[CONF_BACKUP_TIMEOUT]
+    auto_backup = hass.data[DOMAIN][DATA_AUTO_BACKUP] = AutoBackup(
+        hass,
+        web_session,
+        options.get(CONF_AUTO_PURGE, True),
+        options.get(CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT),
     )
+
     await auto_backup.load_snapshots_expiry()
 
-    # load the auto backup sensor.
-    hass.async_create_task(
-        hass.helpers.discovery.async_load_platform("sensor", DOMAIN, {}, config)
+    hass.data[DOMAIN][UNSUB_LISTENER] = entry.add_update_listener(
+        auto_backup.update_listener
     )
 
     # register services.
@@ -156,7 +180,32 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType):
 
     hass.services.async_register(DOMAIN, SERVICE_PURGE, purge_service_handler)
 
+    # load the auto backup sensor.
+    for component in PLATFORMS:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, component)
+        )
+
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload a config entry."""
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(entry, component)
+                for component in PLATFORMS
+            ]
+        )
+    )
+
+    hass.data[DOMAIN][UNSUB_LISTENER]()
+
+    for service in [SERVICE_SNAPSHOT_FULL, SERVICE_SNAPSHOT_PARTIAL, SERVICE_PURGE]:
+        hass.services.async_remove(DOMAIN, service)
+
+    return unload_ok
 
 
 class AutoBackup:
@@ -171,7 +220,7 @@ class AutoBackup:
         self._web_session = web_session
         self._ip = os.environ["HASSIO"]
         self._auto_purge = auto_purge
-        self._backup_timeout = backup_timeout
+        self._backup_timeout = backup_timeout * 60
 
         self._state = 0
 
@@ -179,6 +228,11 @@ class AutoBackup:
             hass, STORAGE_VERSION, f"{DOMAIN}.{STORAGE_KEY}", encoder=JSONEncoder
         )
         self._snapshots_expiry = {}
+
+    async def update_listener(self, hass, entry: ConfigEntry):
+        """Handle options update."""
+        self._auto_purge = entry.options[CONF_AUTO_PURGE]
+        self._backup_timeout = entry.options[CONF_BACKUP_TIMEOUT] * 60
 
     async def load_snapshots_expiry(self):
         """Load snapshots expiry dates from home assistants storage."""
@@ -298,7 +352,7 @@ class AutoBackup:
             data[ATTR_PASSWORD] = "<hidden>"
 
         _LOGGER.debug(
-            "New snapshot; command: %s, keep_days: %s, data: %s, timeout: %s",
+            "New snapshot; command: %s, keep_days: %s, data: %s, timeout: %s seconds",
             command,
             keep_days,
             data,
@@ -355,7 +409,8 @@ class AutoBackup:
             _LOGGER.error("Error during backup. %s", err)
             self._state -= 1
             self._hass.bus.async_fire(
-                EVENT_SNAPSHOT_FAILED, {"name": data[ATTR_NAME], "error": str(err)},
+                EVENT_SNAPSHOT_FAILED,
+                {"name": data[ATTR_NAME], "error": str(err)},
             )
 
         # purging old snapshots

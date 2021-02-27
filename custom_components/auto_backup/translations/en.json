@@ -1,0 +1,26 @@
+{
+    "title": "Auto Backup",
+    "config": {
+        "title": "Auto Backup",
+        "step": {
+            "user": {
+                "title": "\uD83D\uDDC3️ Auto Backup",
+                "description": "Improved backup service for Hass.io that can automatically remove snapshots"
+            }
+        },
+        "abort": {
+            "single_instance": "Only a single configuration of Auto Backup is allowed.",
+            "missing_hassio": "Hass.io does not appear to be installed (missing environment variables)."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "auto_purge": "Automatically delete expired backups",
+                    "backup_timeout": "Backup Timeout (minutes)"
+                }
+            }
+        }
+    }
+}

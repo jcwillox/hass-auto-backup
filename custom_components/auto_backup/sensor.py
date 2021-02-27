@@ -1,7 +1,9 @@
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.typing import HomeAssistantType, ConfigType, EventType
+from homeassistant.helpers.typing import HomeAssistantType, EventType
+
 from . import AutoBackup
 from .const import (
     DOMAIN,
@@ -9,6 +11,7 @@ from .const import (
     EVENT_SNAPSHOT_SUCCESSFUL,
     EVENT_SNAPSHOT_FAILED,
     EVENT_SNAPSHOT_START,
+    DATA_AUTO_BACKUP,
 )
 
 ATTR_LAST_FAILURE = "last_failure"
@@ -19,14 +22,11 @@ DEFAULT_ICON = "mdi:package-variant-closed"
 DEFAULT_NAME = "Auto Backup"
 
 
-async def async_setup_platform(
-    hass: HomeAssistantType, config: ConfigType, async_add_entities, discovery_info=None
+async def async_setup_entry(
+    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
 ):
-    """Set up the Sensor."""
-    if discovery_info is None:
-        return
-
-    auto_backup = hass.data[DOMAIN]
+    """Set up Auto Backup sensors based on a config entry."""
+    auto_backup = hass.data[DOMAIN][DATA_AUTO_BACKUP]
     async_add_entities([AutoBackupSensor(auto_backup)])
 
 
