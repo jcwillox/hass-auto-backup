@@ -1,6 +1,7 @@
 # <span style="font-family: 'Segoe UI Emoji'">🗃</span> Auto Backup
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
 
 Improved Backup Service for [Hass.io](https://www.home-assistant.io/hassio) that can Automatically Remove Snapshots and Supports Generational Backup Schemes.
 
@@ -20,7 +21,7 @@ Take a snapshot of all home assistant addons and folders.
 | `password`                    | Optional password to secure backup.                         | `string`                            | 1234                                                                                             |
 | [`keep_days`](#keep-days)     | The number of days to keep the backup.                      | `float`                             | 2                                                                                                |
 | `exclude`                     | Addons/Folders to exclude from the backup.                  | [`exclude_object`](#exclude-object) | [`{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}`](#example-exclude-from-backup) |
-| [`backup_path`](#backup-path) | Alternative directory to copy the backup to after creation. | `directory`                         | /usb_drive                                                                                       |
+| [`backup_path`](#download-to) | Alternative directory to copy the backup to after creation. | `directory`                         | /usb_drive                                                                                       |
 
 #### Exclude Object
 
@@ -42,7 +43,7 @@ Take a snapshot of the specified home assistant addons and folders.
 | [`folders`](#addonfolder-names) | List of folders to backup.                                  | `list`      | ["Local add-ons", "homeassistant", "share"]       |
 | `password`                      | Optional password to secure backup.                         | `string`    | 1234                                              |
 | [`keep_days`](#keep-days)       | The number of days to keep the backup.                      | `float`     | 2                                                 |
-| [`backup_path`](#backup-path)   | Alternative directory to copy the backup to after creation. | `directory` | /usb_drive                                        |
+| [`backup_path`](#download-to)   | Alternative directory to copy the backup to after creation. | `directory` | /usb_drive                                        |
 
 ---
 
@@ -58,23 +59,24 @@ this can be disabled in the [config](#configuration)_.
 
 ## Addon/Folder Names
 
-**Addon names** are case insensitive and can be the addon name/title, these are the same names seen when creating a partial snapshot through the `Hass.io` page. They can also be the addons slug (slug must be lowercase).
+**Addon names** are case-insensitive and can be the addon name/title, these are the same names seen when creating a partial snapshot through the `Hass.io` page. They can also be the addons slug (slug must be lowercase).
 
-**Folder names** are also case insensitive and use the names seen when creating a partial snapshot through the `Hass.io` page.
-Currently accepted values are (ignoring case):
+**Folder names** are also case-insensitive and use the names seen when creating a partial snapshot through the `Hass.io` page.
+Currently, accepted values are (ignoring case):
 
 - `ssl`
 - `share`
+- `media`
 - `local add-ons` or `addons/local`
 - `home assistant configuration` or `homeassistant`
 
 ## Keep Days
 
-The `keep_days` attribute allows you to specify how long the backup should be kept for before being deleted. Default is forever. You can specify a float value for keep days, e.g. to keep a backup for 12 hours use `0.5`.
+The `keep_days` parameter allows you to specify how long the backup should be kept for before being deleted. Default is forever. You can specify a float value for keep days, e.g. to keep a backup for 12 hours use `0.5`.
 
-## Backup Path
+## Download To
 
-The `backup_path` attribute allows you to specify a directory to download the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
+The `backup_path` parameter allows you to specify a directory to download the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
 
 The snapshot will still be stored under `/backup` and show up in the `Hass.io` snapshots page, _it will only be downloaded to the location specified_, to immediately delete the snapshot from `Hass.io` use a negative value for `keep_days` (-1 will suffice).
 
@@ -94,6 +96,15 @@ A slugified version of the snapshots name will be used for the filename, if a fi
 
 ## Configuration
 
+After installing Auto Backup via HACS, it can then be setup via the UI, go to the Integrations menu and add `Auto Backup`.
+
+On Home Assistant 2021.3.0 and above you can use the badge below to automatically start the setup
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
+
+<details>
+<summary>Manual Configuration (Deprecated)</summary>
+<br>
 Just add `auto_backup` to your home assistant configuration.yaml file.
 
 > ```yaml
@@ -111,6 +122,8 @@ Just add `auto_backup` to your home assistant configuration.yaml file.
 - **backup_timeout** _(integer) (seconds) (Optional)_
   - _Default value:_ `1200` (20 min)
   - You can increase this value if you get timeout errors when creating a snapshot. This can happen with very large snapshots.
+
+</details>
 
 ## Examples
 
