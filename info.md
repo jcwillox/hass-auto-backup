@@ -27,13 +27,11 @@ For more information and examples check the [full documentation](https://github.
 
 ## Configuration
 
-Just add `auto_backup` to your home assistant configuration.yaml file.
+Auto Backup can be setup via the UI, go to the Integrations menu and add `Auto Backup`.
 
-```yaml
-# Example configuration.yaml entry
-auto_backup:
-  auto_purge: true
-```
+On Home Assistant 2021.3.0 and above you can use the badge below to automatically start the setup.
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
 
 ### Configuration Variables
 
