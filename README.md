@@ -105,6 +105,7 @@ On Home Assistant 2021.3.0 and above you can use the badge below to automaticall
 <details>
 <summary>Manual Configuration (Deprecated)</summary>
 <br>
+
 Just add `auto_backup` to your home assistant configuration.yaml file.
 
 > ```yaml
