@@ -136,7 +136,7 @@ Just add `auto_backup` to your home assistant configuration.yaml file.
 >     event_type: auto_backup.snapshot_failed
 >   action:
 >     service: persistent_notification.create
->     data_template:
+>     data:
 >       title: "Snapshot Failed."
 >       message: "Name: {{ trigger.event.data.name }}\nError: {{ trigger.event.data.error }}"
 > ```
@@ -153,7 +153,7 @@ and store each backup for 2 days.
 >       hours: "/3"
 >   action:
 >     - service: auto_backup.snapshot_partial
->       data_template:
+>       data:
 >         name: "AutoBackup: {{ now().strftime('%a, %-I:%M %p (%d/%m/%Y)') }}"
 >         addons:
 >           - almond
@@ -177,7 +177,7 @@ and store each backup for 2 days.
 >       at: "00:00:00"
 >   action:
 >     - service: auto_backup.snapshot_full
->       data_template:
+>       data:
 >         name: "DailyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
 >         keep_days: 7
 >         exclude:
@@ -222,7 +222,7 @@ automation:
       hours: "/3"
     action:
       service: auto_backup.snapshot_partial # Only perform a partial snapshot to save storage.
-      data_template:
+      data:
         name: "AutoBackup: {{ now().strftime('%a, %-I:%M %p (%d/%m/%Y)') }}"
         addons:
           - core_mariadb # It doesn't matter if you use the addon slug or name. Name is easier.
@@ -248,7 +248,7 @@ automation:
         - sun
     action:
       service: auto_backup.snapshot_full
-      data_template:
+      data:
         name: "DailyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
         keep_days: 7
 
@@ -262,7 +262,7 @@ automation:
         - mon
     action:
       service: auto_backup.snapshot_full
-      data_template:
+      data:
         name: "WeeklyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
         keep_days: 28 # Store backup for a month, basically perform 1 backup each week and store for 4 weeks.
 ```
