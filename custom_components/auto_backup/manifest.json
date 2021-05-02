@@ -6,5 +6,6 @@
   "dependencies": [],
   "codeowners": ["@jcwillox"],
   "requirements": [],
+  "iot_class": "local_push",
   "config_flow": true
 }
