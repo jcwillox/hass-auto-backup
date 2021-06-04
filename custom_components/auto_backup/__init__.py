@@ -8,13 +8,9 @@ from typing import List
 
 import aiohttp
 import async_timeout
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from aiohttp import ClientSession
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
-from homeassistant.core import HomeAssistant
-from slugify import slugify
-
-import homeassistant.helpers.config_validation as cv
 from homeassistant.components.hassio import (
     SERVICE_SNAPSHOT_FULL,
     SERVICE_SNAPSHOT_PARTIAL,
@@ -26,10 +22,15 @@ from homeassistant.components.hassio import (
 )
 from homeassistant.components.hassio.const import X_HASSIO
 from homeassistant.components.hassio.handler import HassioAPIError
+from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import ATTR_NAME
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
+from homeassistant.util import dt as dt_util
+from slugify import slugify
+
 from .const import (
     DOMAIN,
     EVENT_SNAPSHOT_FAILED,
@@ -299,9 +300,10 @@ class AutoBackup:
         """Create a new snapshot in Hass.io."""
         if ATTR_NAME not in data:
             # provide a default name if none was supplied.
-            data[ATTR_NAME] = datetime.now(self._hass.config.time_zone).strftime(
-                "%A, %b %d, %Y"
-            )
+            time_zone = self._hass.config.time_zone
+            if isinstance(time_zone, str):
+                time_zone = dt_util.get_time_zone(time_zone)
+            data[ATTR_NAME] = datetime.now(time_zone).strftime("%A, %b %d, %Y")
 
         _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
 
