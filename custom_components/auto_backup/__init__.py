@@ -12,10 +12,6 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from aiohttp import ClientSession
 from homeassistant.components.hassio import (
-    SERVICE_SNAPSHOT_FULL,
-    SERVICE_SNAPSHOT_PARTIAL,
-    SCHEMA_SNAPSHOT_FULL,
-    SCHEMA_SNAPSHOT_PARTIAL,
     ATTR_FOLDERS,
     ATTR_ADDONS,
     ATTR_PASSWORD,
@@ -64,6 +60,8 @@ DEFAULT_SNAPSHOT_FOLDERS = {
 CHUNK_SIZE = 64 * 1024  # 64 KB
 
 SERVICE_PURGE = "purge"
+SERVICE_SNAPSHOT_FULL = "snapshot_full"
+SERVICE_SNAPSHOT_PARTIAL = "snapshot_partial"
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -77,23 +75,30 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_FULL.extend(
+SCHEMA_SNAPSHOT_BASE = vol.Schema(
     {
+        vol.Optional(ATTR_NAME): cv.string,
+        vol.Optional(ATTR_PASSWORD): cv.string,
         vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
+        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
+    }
+)
+
+SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_BASE.extend(
+    {
         vol.Optional(ATTR_EXCLUDE): {
             vol.Optional(ATTR_FOLDERS, default=[]): vol.All(
                 cv.ensure_list, [cv.string]
             ),
             vol.Optional(ATTR_ADDONS, default=[]): vol.All(cv.ensure_list, [cv.string]),
         },
-        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
     }
 )
 
-SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_PARTIAL.extend(
+SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_BASE.extend(
     {
-        vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
-        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
+        vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
     }
 )
 
