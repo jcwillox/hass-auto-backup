@@ -230,10 +230,10 @@ class AutoBackup:
 
         self._state = 0
 
-        self._snapshots_store = Store(
+        self._store = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{STORAGE_KEY}", encoder=JSONEncoder
         )
-        self._snapshots_expiry = {}
+        self._snapshots = {}
 
     async def update_listener(self, hass, entry: ConfigEntry):
         """Handle options update."""
@@ -242,11 +242,11 @@ class AutoBackup:
 
     async def load_snapshots_expiry(self):
         """Load snapshots expiry dates from home assistants storage."""
-        data = await self._snapshots_store.async_load()
+        data = await self._store.async_load()
 
         if data is not None:
             for slug, expiry in data.items():
-                self._snapshots_expiry[slug] = datetime.fromisoformat(expiry)
+                self._snapshots[slug] = datetime.fromisoformat(expiry)
 
     async def get_addons(self, only_installed=True):
         """Retrieve a list of addons from Hass.io."""
@@ -268,7 +268,7 @@ class AutoBackup:
 
     @property
     def monitored(self):
-        return len(self._snapshots_expiry)
+        return len(self._snapshots)
 
     @property
     def purgeable(self):
@@ -402,11 +402,11 @@ class AutoBackup:
 
             if keep_days is not None:
                 # set snapshot expiry
-                self._snapshots_expiry[slug] = datetime.now(timezone.utc) + timedelta(
+                self._snapshots[slug] = datetime.now(timezone.utc) + timedelta(
                     days=float(keep_days)
                 )
                 # write snapshot expiry to storage
-                await self._snapshots_store.async_save(self._snapshots_expiry)
+                await self._store.async_save(self._snapshots)
 
             # copy snapshot to location if specified
             if backup_path:
@@ -427,9 +427,7 @@ class AutoBackup:
     def get_purgeable_snapshots(self) -> List[str]:
         """Returns the slugs of purgeable snapshots."""
         now = datetime.now(timezone.utc)
-        return [
-            slug for slug, expires in self._snapshots_expiry.items() if expires < now
-        ]
+        return [slug for slug, expires in self._snapshots.items() if expires < now]
 
     async def purge_snapshots(self):
         """Purge expired snapshots from Hass.io."""
@@ -470,9 +468,9 @@ class AutoBackup:
                 )
 
             # remove snapshot expiry.
-            del self._snapshots_expiry[slug]
+            del self._snapshots[slug]
             # write snapshot expiry to storage.
-            await self._snapshots_store.async_save(self._snapshots_expiry)
+            await self._store.async_save(self._snapshots)
 
         except HassioAPIError as err:
             _LOGGER.error("Failed to purge snapshot: %s", err)
