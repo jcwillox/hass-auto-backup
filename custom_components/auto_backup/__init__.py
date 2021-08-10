@@ -49,6 +49,7 @@ ATTR_BACKUP_PATH = "backup_path"
 DEFAULT_SNAPSHOT_FOLDERS = {
     "ssl": "ssl",
     "share": "share",
+    "media": "media",
     "local add-ons": "addons/local",
     "home assistant configuration": "homeassistant",
 }
