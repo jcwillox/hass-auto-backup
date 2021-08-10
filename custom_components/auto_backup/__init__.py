@@ -151,10 +151,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # register services.
     async def snapshot_service_handler(call: ServiceCallType):
         """Handle Snapshot Creation Service Calls."""
-        hass.async_create_task(
-            auto_backup.new_snapshot(
-                call.data.copy(), call.service == SERVICE_SNAPSHOT_FULL
-            )
+        await auto_backup.new_snapshot(
+            call.data.copy(), call.service == SERVICE_SNAPSHOT_FULL
         )
 
     async def purge_service_handler(_):
