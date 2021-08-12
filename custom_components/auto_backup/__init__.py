@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 from os.path import join, isfile
-from typing import List
+from typing import List, Dict, Tuple, Set
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -43,6 +43,7 @@ STORAGE_KEY = "snapshots_expiry"
 STORAGE_VERSION = 1
 
 ATTR_KEEP_DAYS = "keep_days"
+ATTR_INCLUDE = "include"
 ATTR_EXCLUDE = "exclude"
 ATTR_BACKUP_PATH = "backup_path"
 
@@ -151,9 +152,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     # register services.
     async def snapshot_service_handler(call: ServiceCallType):
         """Handle Snapshot Creation Service Calls."""
-        await auto_backup.new_snapshot(
-            call.data.copy(), call.service == SERVICE_SNAPSHOT_FULL
-        )
+        data = call.data.copy()
+        if call.service == SERVICE_SNAPSHOT_PARTIAL:
+            data[ATTR_INCLUDE] = {
+                ATTR_FOLDERS: data.pop(ATTR_FOLDERS, []),
+                ATTR_ADDONS: data.pop(ATTR_ADDONS, []),
+            }
+        await auto_backup.async_create_backup(data)
 
     async def purge_service_handler(_):
         """Handle Snapshot Purge Service Calls."""
@@ -246,107 +251,113 @@ class AutoBackup:
     def state(self):
         return self._state
 
-    async def _replace_addon_names(self, snapshot_addons, addons):
-        """Replace addon names with their appropriate slugs."""
-        if addons:
-            for addon in addons:
-                for idx, snapshot_addon in enumerate(snapshot_addons):
-                    # perform case insensitive match.
-                    if snapshot_addon.casefold() == addon["name"].casefold():
-                        snapshot_addons[idx] = addon["slug"]
-        return snapshot_addons
+    @classmethod
+    def ensure_slugs(cls, inclusion, installed_addons) -> Tuple[Set, Set]:
+        """Helper method to slugify both the addon and folder sections"""
+        addons = inclusion[ATTR_ADDONS]
+        folders = inclusion[ATTR_FOLDERS]
+        return (
+            cls.ensure_addon_slugs(addons, installed_addons),
+            cls.ensure_folder_slugs(folders),
+        )
 
     @staticmethod
-    def _replace_folder_names(snapshot_folders):
+    def ensure_addon_slugs(addons, installed_addons):
+        """Replace addon names with their appropriate slugs."""
+
+        def match_addon(addon):
+            for installed_addon in installed_addons:
+                # perform case insensitive match.
+                if addon.casefold() == installed_addon["name"].casefold():
+                    return installed_addon["slug"]
+                if addon == installed_addon["slug"]:
+                    return addon
+            _LOGGER.warning("Addon '%s' does not exist", addon)
+
+        return {match_addon(addon) for addon in addons}
+
+    @staticmethod
+    def ensure_folder_slugs(folders):
         """Convert folder name to lower case and replace friendly folder names."""
-        for idx, snapshot_folder in enumerate(snapshot_folders):
-            snapshot_folder = snapshot_folder.lower()
-            snapshot_folders[idx] = DEFAULT_SNAPSHOT_FOLDERS.get(
-                snapshot_folder, snapshot_folder
-            )
 
-        return snapshot_folders
+        def match_folder(folder):
+            folder = folder.casefold()
+            return DEFAULT_SNAPSHOT_FOLDERS.get(folder, folder)
 
-    async def new_snapshot(self, data, full=False):
-        """Create a new snapshot in Hass.io."""
+        return {match_folder(folder) for folder in folders}
+
+    def generate_backup_name(self) -> str:
+        time_zone = self._hass.config.time_zone
+        if isinstance(time_zone, str):
+            time_zone = dt_util.get_time_zone(time_zone)
+        return datetime.now(time_zone).strftime("%A, %b %d, %Y")
+
+    async def async_create_backup(self, data: Dict):
+        """Identify actual type of backup to create and handle include/exclude options"""
         if ATTR_NAME not in data:
-            # provide a default name if none was supplied.
-            time_zone = self._hass.config.time_zone
-            if isinstance(time_zone, str):
-                time_zone = dt_util.get_time_zone(time_zone)
-            data[ATTR_NAME] = datetime.now(time_zone).strftime("%A, %b %d, %Y")
+            data[ATTR_NAME] = self.generate_backup_name()
 
-        _LOGGER.debug("Creating snapshot %s", data[ATTR_NAME])
+        _LOGGER.debug("Creating snapshot '%s'", data[ATTR_NAME])
 
+        include: Dict = data.pop(ATTR_INCLUDE, None)
+        exclude: Dict = data.pop(ATTR_EXCLUDE, None)
+
+        if not (include or exclude):
+            # must be a full backup
+            await self._async_create_backup(data)
+        else:
+            installed_addons = await self._hassio.get_installed_addons()
+            addons, folders = self.ensure_slugs(include or exclude, installed_addons)
+
+            if exclude:
+                # identify included addons/folders
+                addons = [
+                    installed["slug"]
+                    for installed in installed_addons
+                    if installed["slug"] not in addons
+                ]
+                folders = set(DEFAULT_SNAPSHOT_FOLDERS.values()) - folders
+
+            data[ATTR_ADDONS] = list(addons)
+            data[ATTR_FOLDERS] = list(folders)
+            await self._async_create_backup(data, partial=True)
+
+        ### PURGE SNAPSHOTS ###
+        if self._auto_purge:
+            await self.purge_snapshots()
+
+    async def _async_create_backup(self, data: Dict, partial: bool = False):
+        """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
         backup_path = data.pop(ATTR_BACKUP_PATH, None)
 
-        installed_addons = await self._hassio.get_installed_addons()
-
-        if full:
-            # performing full backup.
-            exclude = data.pop(ATTR_EXCLUDE, None)
-            if exclude:
-                # handle exclude config.
-                full = False
-
-                # append addons.
-                if installed_addons:
-                    excluded_addons = await self._replace_addon_names(
-                        exclude[ATTR_ADDONS], installed_addons
-                    )
-
-                    data[ATTR_ADDONS] = [
-                        addon["slug"]
-                        for addon in installed_addons
-                        if addon["slug"] not in excluded_addons
-                    ]
-
-                # append folders.
-                excluded_folders = self._replace_folder_names(exclude[ATTR_FOLDERS])
-                data[ATTR_FOLDERS] = [
-                    folder
-                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values()
-                    if folder not in excluded_folders
-                ]
-
-        else:
-            # performing partial backup.
-            # replace addon names with their appropriate slugs.
-            if ATTR_ADDONS in data:
-                data[ATTR_ADDONS] = await self._replace_addon_names(
-                    data[ATTR_ADDONS], installed_addons
-                )
-            # replace friendly folder names.
-            if ATTR_FOLDERS in data:
-                data[ATTR_FOLDERS] = self._replace_folder_names(data[ATTR_FOLDERS])
-
-        # ensure password is scrubbed from logs.
+        ### LOG DEBUG INFO ###
+        # ensure password is scrubbed from logs
         password = data.get(ATTR_PASSWORD)
         if password:
             data[ATTR_PASSWORD] = "<hidden>"
 
         _LOGGER.debug(
-            "Creating Snapshot (%s); keep_days: %s, timeout: %s, data: %s",
-            "partial" if not full else "full",
+            "Creating snapshot (%s); keep_days: %s, timeout: %s, data: %s",
+            "partial" if partial else "full",
             keep_days,
-            data,
             self._backup_timeout,
+            data,
         )
 
-        # re-add password if it existed.
+        # re-add password if it existed
         if password:
             data[ATTR_PASSWORD] = password
             del password
 
+        ### CREATE SNAPSHOT ###
         self._state += 1
         self._hass.bus.async_fire(EVENT_SNAPSHOT_START, {"name": data[ATTR_NAME]})
 
-        # make request to create new snapshot.
         try:
             try:
                 result = await self._hassio.create_backup(
-                    data, partial=not full, timeout=self._backup_timeout
+                    data, partial, timeout=self._backup_timeout
                 )
             except HassioAPIError as err:
                 raise HassioAPIError(
@@ -385,10 +396,6 @@ class AutoBackup:
                 EVENT_SNAPSHOT_FAILED,
                 {"name": data[ATTR_NAME], "error": str(err)},
             )
-
-        # purging old snapshots
-        if self._auto_purge:
-            await self.purge_snapshots()
 
     def get_purgeable_snapshots(self) -> List[str]:
         """Returns the slugs of purgeable snapshots."""
