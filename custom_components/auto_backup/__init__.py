@@ -405,24 +405,21 @@ class AutoBackup:
 
     async def purge_snapshots(self):
         """Purge expired snapshots from Hass.io."""
-        snapshots_purged = []
-        for slug in self.get_purgeable_snapshots():
-            if await self._purge_snapshot(slug):
-                snapshots_purged.append(slug)
+        purged = [
+            slug
+            for slug in self.get_purgeable_snapshots()
+            if await self._purge_snapshot(slug)
+        ]
 
-        if len(snapshots_purged) == 1:
-            _LOGGER.info("Purged 1 snapshot; %s", snapshots_purged[0])
-        elif len(snapshots_purged) > 1:
+        if purged:
             _LOGGER.info(
                 "Purged %s snapshots; %s",
-                len(snapshots_purged),
-                tuple(snapshots_purged),
+                len(purged),
+                purged,
             )
-
-        if len(snapshots_purged) > 0:
-            self._hass.bus.async_fire(
-                EVENT_SNAPSHOTS_PURGED, {"snapshots": snapshots_purged}
-            )
+            self._hass.bus.async_fire(EVENT_SNAPSHOTS_PURGED, {"snapshots": purged})
+            # write updated snapshots list to storage
+            await self._store.async_save(self._snapshots)
         else:
             _LOGGER.debug("No snapshots required purging.")
 
@@ -433,9 +430,6 @@ class AutoBackup:
             await self._hassio.remove_backup(slug)
             # remove snapshot expiry.
             del self._snapshots[slug]
-            # write snapshot expiry to storage.
-            await self._store.async_save(self._snapshots)
-
         except HassioAPIError as err:
             if str(err) == "Snapshot does not exist":
                 del self._snapshots[slug]
