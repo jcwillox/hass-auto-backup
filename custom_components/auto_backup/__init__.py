@@ -245,7 +245,7 @@ class AutoBackup:
         return self._state
 
     @classmethod
-    def ensure_slugs(cls, inclusion, installed_addons) -> Tuple[Set, Set]:
+    def ensure_slugs(cls, inclusion, installed_addons) -> Tuple[List, List]:
         """Helper method to slugify both the addon and folder sections"""
         addons = inclusion[ATTR_ADDONS]
         folders = inclusion[ATTR_FOLDERS]
@@ -255,8 +255,10 @@ class AutoBackup:
         )
 
     @staticmethod
-    def ensure_addon_slugs(addons, installed_addons):
+    def ensure_addon_slugs(addons, installed_addons) -> List[str]:
         """Replace addon names with their appropriate slugs."""
+        if not addons:
+            return []
 
         def match_addon(addon):
             for installed_addon in installed_addons:
@@ -267,17 +269,19 @@ class AutoBackup:
                     return addon
             _LOGGER.warning("Addon '%s' does not exist", addon)
 
-        return {match_addon(addon) for addon in addons}
+        return [match_addon(addon) for addon in addons]
 
     @staticmethod
-    def ensure_folder_slugs(folders):
+    def ensure_folder_slugs(folders) -> List[str]:
         """Convert folder name to lower case and replace friendly folder names."""
+        if not folders:
+            return []
 
         def match_folder(folder):
             folder = folder.casefold()
             return DEFAULT_SNAPSHOT_FOLDERS.get(folder, folder)
 
-        return {match_folder(folder) for folder in folders}
+        return [match_folder(folder) for folder in folders]
 
     def generate_backup_name(self) -> str:
         time_zone = self._hass.config.time_zone
@@ -309,10 +313,14 @@ class AutoBackup:
                     for installed in installed_addons
                     if installed["slug"] not in addons
                 ]
-                folders = set(DEFAULT_SNAPSHOT_FOLDERS.values()) - folders
+                folders = [
+                    folder
+                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values()
+                    if folder not in folders
+                ]
 
-            data[ATTR_ADDONS] = list(addons)
-            data[ATTR_FOLDERS] = list(folders)
+            data[ATTR_ADDONS] = addons
+            data[ATTR_FOLDERS] = folders
             await self._async_create_backup(data, partial=True)
 
         ### PURGE SNAPSHOTS ###
