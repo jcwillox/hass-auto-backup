@@ -46,6 +46,7 @@ ATTR_KEEP_DAYS = "keep_days"
 ATTR_INCLUDE = "include"
 ATTR_EXCLUDE = "exclude"
 ATTR_BACKUP_PATH = "backup_path"
+ATTR_DOWNLOAD_PATH = "download_path"
 
 DEFAULT_SNAPSHOT_FOLDERS = {
     "ssl": "ssl",
@@ -76,7 +77,8 @@ SCHEMA_SNAPSHOT_BASE = vol.Schema(
         vol.Optional(ATTR_NAME): cv.string,
         vol.Optional(ATTR_PASSWORD): cv.string,
         vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
-        vol.Optional(ATTR_BACKUP_PATH): cv.isdir,
+        vol.Exclusive(ATTR_BACKUP_PATH, ATTR_DOWNLOAD_PATH): cv.isdir,
+        vol.Exclusive(ATTR_DOWNLOAD_PATH, ATTR_DOWNLOAD_PATH): cv.isdir,
     }
 )
 
@@ -146,6 +148,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     async def snapshot_service_handler(call: ServiceCallType):
         """Handle Snapshot Creation Service Calls."""
         data = call.data.copy()
+        if ATTR_BACKUP_PATH in data:
+            data[ATTR_DOWNLOAD_PATH] = data.pop(ATTR_BACKUP_PATH)
+            _LOGGER.warning(
+                "Using 'backup_path' is deprecated and will be removed in Home Assistant 2021.11, use 'download_path' instead"
+            )
+
         if call.service == SERVICE_SNAPSHOT_PARTIAL:
             data[ATTR_INCLUDE] = {
                 ATTR_FOLDERS: data.pop(ATTR_FOLDERS, []),
@@ -330,7 +338,7 @@ class AutoBackup:
     async def _async_create_backup(self, data: Dict, partial: bool = False):
         """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
-        backup_path = data.pop(ATTR_BACKUP_PATH, None)
+        download_path = data.pop(ATTR_DOWNLOAD_PATH, None)
 
         ### LOG DEBUG INFO ###
         # ensure password is scrubbed from logs
@@ -384,10 +392,10 @@ class AutoBackup:
                 # write snapshot expiry to storage
                 await self._store.async_save(self._snapshots)
 
-            # copy snapshot to location if specified
-            if backup_path:
+            # download backup to location if specified
+            if download_path:
                 self._hass.async_create_task(
-                    self.async_download_backup(data[ATTR_NAME], slug, backup_path)
+                    self.async_download_backup(data[ATTR_NAME], slug, download_path)
                 )
 
         except HassioAPIError as err:

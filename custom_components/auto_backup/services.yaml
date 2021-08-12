@@ -32,8 +32,8 @@ snapshot_full:
       default: {"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}
       selector:
         object:
-    backup_path:
-      name: Download to
+    download_path:
+      name: Download path
       description: Download the backup to a location after creation.
       example: /usb_drive
       advanced: true
@@ -79,8 +79,8 @@ snapshot_partial:
           step: 0.01
           unit_of_measurement: days
           mode: box
-    backup_path:
-      name: Download to
+    download_path:
+      name: Download path
       description: Download the backup to a location after creation.
       example: /usb_drive
       advanced: true

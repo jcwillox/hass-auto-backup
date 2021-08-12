@@ -15,13 +15,13 @@ All service parameters are optional.
 
 Take a snapshot of all home assistant addons and folders.
 
-| Parameter                     | Description                                                 | Type                                | Example                                                                                          |
-| ----------------------------- | ----------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `name`                        | Backup name.                                                | `string`                            | Automatic Backup {{ now().strftime('%Y-%m-%d') }}                                                |
-| `password`                    | Optional password to secure backup.                         | `string`                            | 1234                                                                                             |
-| [`keep_days`](#keep-days)     | The number of days to keep the backup.                      | `float`                             | 2                                                                                                |
-| `exclude`                     | Addons/Folders to exclude from the backup.                  | [`exclude_object`](#exclude-object) | [`{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}`](#example-exclude-from-backup) |
-| [`backup_path`](#download-to) | Alternative directory to copy the backup to after creation. | `directory`                         | /usb_drive                                                                                       |
+| Parameter                       | Description                                         | Type                                | Example                                                                                          |
+| ------------------------------- | --------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `name`                          | Backup name.                                        | `string`                            | Automatic Backup {{ now().strftime('%Y-%m-%d') }}                                                |
+| `password`                      | Optional password to secure backup.                 | `string`                            | 1234                                                                                             |
+| [`keep_days`](#keep-days)       | The number of days to keep the backup.              | `float`                             | 2                                                                                                |
+| `exclude`                       | Addons/Folders to exclude from the backup.          | [`exclude_object`](#exclude-object) | [`{"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}`](#example-exclude-from-backup) |
+| [`download_path`](#download-path) | Directory to download the backup to after creation. | `directory`                         | /usb_drive                                                                                       |
 
 #### Exclude Object
 
@@ -36,14 +36,14 @@ Take a snapshot of all home assistant addons and folders.
 
 Take a snapshot of the specified home assistant addons and folders.
 
-| Parameter                       | Description                                                 | Type        | Example                                           |
-| ------------------------------- | ----------------------------------------------------------- | ----------- | ------------------------------------------------- |
-| `name`                          | Backup name.                                                | `string`    | Automatic Backup {{ now().strftime('%Y-%m-%d') }} |
-| [`addons`](#addonfolder-names)  | List of addons to backup (name or slug).                    | `list`      | ["Almond", "glances", "core_mariadb"]             |
-| [`folders`](#addonfolder-names) | List of folders to backup.                                  | `list`      | ["Local add-ons", "homeassistant", "share"]       |
-| `password`                      | Optional password to secure backup.                         | `string`    | 1234                                              |
-| [`keep_days`](#keep-days)       | The number of days to keep the backup.                      | `float`     | 2                                                 |
-| [`backup_path`](#download-to)   | Alternative directory to copy the backup to after creation. | `directory` | /usb_drive                                        |
+| Parameter                       | Description                                         | Type        | Example                                           |
+| ------------------------------- | --------------------------------------------------- | ----------- | ------------------------------------------------- |
+| `name`                          | Backup name.                                        | `string`    | Automatic Backup {{ now().strftime('%Y-%m-%d') }} |
+| [`addons`](#addonfolder-names)  | List of addons to backup (name or slug).            | `list`      | ["Almond", "glances", "core_mariadb"]             |
+| [`folders`](#addonfolder-names) | List of folders to backup.                          | `list`      | ["Local add-ons", "homeassistant", "share"]       |
+| `password`                      | Optional password to secure backup.                 | `string`    | 1234                                              |
+| [`keep_days`](#keep-days)       | The number of days to keep the backup.              | `float`     | 2                                                 |
+| [`download_path`](#download-path)   | Directory to download the backup to after creation. | `directory` | /usb_drive                                        |
 
 ---
 
@@ -74,24 +74,27 @@ Currently, accepted values are (ignoring case):
 
 The `keep_days` parameter allows you to specify how long the backup should be kept for before being deleted. Default is forever. You can specify a float value for keep days, e.g. to keep a backup for 12 hours use `0.5`.
 
-## Download To
+## Download Path
 
-The `backup_path` parameter allows you to specify a directory to download the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
+The `download_path` parameter allows you to specify a directory to download the snapshot to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
 
-The snapshot will still be stored under `/backup` and show up in the `Hass.io` snapshots page, _it will only be downloaded to the location specified_, to immediately delete the snapshot from `Hass.io` use a negative value for `keep_days` (-1 will suffice).
+The snapshot will still be stored under `/backup` and show up on the Supervisor snapshots page, _it will only be downloaded to the location specified_, to immediately delete the snapshot from the Supervisor use a negative value for `keep_days` (-1 will suffice).
 
 A slugified version of the snapshots name will be used for the filename, if a file with that name already exists the snapshots slug will be used instead.
 
 > Note: on docker by default you and this integration do not have direct access to the `/backup` folder, which is why the snapshot is downloaded and not copied.
 
 ## Events
+
 [Automation Example](#example-notify-on-snapshot-failure)
+
 * Event: `auto_backup.snapshot_start`, data: `{"name": "NAME"}`
 * Event: `auto_backup.snapshot_successful`, data: `{"name": "NAME", "slug": "SLUG"}`
 * Event: `auto_backup.snapshot_failed`, data: `{"name": "NAME", "error": "ERROR"}`
 * Event: `auto_backup.purged_snapshots`, data: `{"snapshots": ["SLUG"]}`
 
 ## Sensor
+
 <img src="example-sensor.png" width="400px">
 
 ## Configuration
@@ -129,6 +132,7 @@ Just add `auto_backup` to your home assistant configuration.yaml file.
 ## Examples
 
 ### Example: Notify on Snapshot Failure
+
 > ```yaml
 > - alias: "Notify Snapshot Failure"
 >   trigger:

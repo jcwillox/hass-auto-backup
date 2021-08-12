@@ -7,7 +7,7 @@ While Home Assistant does provide built-in services for creating backups, these 
 * `keep_days` can be set individually for each service call.
 * Provides Documented Backup Services (Partial, Full snapshots).
 * Support for Generational Backup Schemes.
-* Backup to an alternative directory (for example a usb drive).
+* Download backups to a specified directory after completion (for example a usb drive).
 * Allows use of addon names instead of slugs.
 * Allows friendly folder names.
 * Adds a sensor to monitor the status of your backups.
