@@ -437,8 +437,11 @@ class AutoBackup:
             await self._store.async_save(self._snapshots)
 
         except HassioAPIError as err:
-            _LOGGER.error("Failed to purge snapshot: %s", err)
-            return False
+            if str(err) == "Snapshot does not exist":
+                del self._snapshots[slug]
+            else:
+                _LOGGER.error("Failed to purge snapshot: %s", err)
+                return False
         return True
 
     def async_download_backup(self, name, slug, backup_path):
