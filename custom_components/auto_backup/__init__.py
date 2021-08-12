@@ -80,23 +80,16 @@ SCHEMA_SNAPSHOT_BASE = vol.Schema(
     }
 )
 
+SCHEMA_ADDONS_FOLDERS = {
+    vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
+    vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
+}
+
 SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_BASE.extend(
-    {
-        vol.Optional(ATTR_EXCLUDE): {
-            vol.Optional(ATTR_FOLDERS, default=[]): vol.All(
-                cv.ensure_list, [cv.string]
-            ),
-            vol.Optional(ATTR_ADDONS, default=[]): vol.All(cv.ensure_list, [cv.string]),
-        },
-    }
+    {vol.Optional(ATTR_EXCLUDE): SCHEMA_ADDONS_FOLDERS}
 )
 
-SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_BASE.extend(
-    {
-        vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
-        vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
-    }
-)
+SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_BASE.extend(SCHEMA_ADDONS_FOLDERS)
 
 PLATFORMS = ["sensor"]
 
