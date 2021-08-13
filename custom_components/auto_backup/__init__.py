@@ -292,9 +292,7 @@ class AutoBackup:
         return [match_folder(folder) for folder in folders]
 
     def generate_backup_name(self) -> str:
-        time_zone = self._hass.config.time_zone
-        if isinstance(time_zone, str):
-            time_zone = dt_util.get_time_zone(time_zone)
+        time_zone = dt_util.get_time_zone(self._hass.config.time_zone)
         return datetime.now(time_zone).strftime("%A, %b %d, %Y")
 
     async def async_create_backup(self, data: Dict):
