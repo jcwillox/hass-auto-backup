@@ -368,7 +368,7 @@ class AutoBackup:
             # snapshot creation was successful
             slug = result["slug"]
             _LOGGER.info(
-                "Snapshot created successfully; '%s' (%s)", data[ATTR_NAME], slug
+                "Snapshot created successfully: '%s' (%s)", data[ATTR_NAME], slug
             )
 
             self._state -= 1
@@ -413,7 +413,7 @@ class AutoBackup:
 
         if purged:
             _LOGGER.info(
-                "Purged %s snapshots; %s",
+                "Purged %s snapshots: %s",
                 len(purged),
                 purged,
             )
