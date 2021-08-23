@@ -71,7 +71,7 @@ class HassIO:
         This method return a coroutine.
         """
         backup_type = "partial" if partial else "full"
-        command = f"/snapshots/new/{backup_type}"
+        command = f"/backups/new/{backup_type}"
         return self.send_command(command, payload=data, timeout=timeout)
 
     @api_data
@@ -80,7 +80,7 @@ class HassIO:
 
         This method return a coroutine.
         """
-        return self.send_command(f"/snapshots/{slug}/remove", timeout=300)
+        return self.send_command(f"/backups/{slug}", method="delete", timeout=300)
 
     async def send_command(self, command, method="post", payload=None, timeout=10):
         """Send API command to Hass.io.
@@ -116,7 +116,7 @@ class HassIO:
         self, slug: str, destination: str, timeout: int = DEFAULT_BACKUP_TIMEOUT_SECONDS
     ):
         """Download and save a backup from Hass.io."""
-        command = f"/snapshots/{slug}/download"
+        command = f"/backups/{slug}/download"
 
         try:
             with async_timeout.timeout(timeout):
