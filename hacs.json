@@ -2,5 +2,6 @@
   "name": "Auto Backup",
   "zip_release": true,
   "hide_default_branch": true,
-  "filename": "auto_backup.zip"
+  "filename": "auto_backup.zip",
+  "homeassistant": "2021.9b0"
 }
