@@ -4,7 +4,7 @@
         "step": {
             "user": {
                 "title": "\uD83D\uDDC3️ Auto Backup",
-                "description": "Improved backup service for Hass.io that can automatically remove snapshots"
+                "description": "Improved backup service for Hass.io that can automatically remove backups"
             }
         },
         "abort": {

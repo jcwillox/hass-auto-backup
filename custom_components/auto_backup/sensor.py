@@ -7,16 +7,16 @@ from homeassistant.helpers.typing import HomeAssistantType, EventType
 from . import AutoBackup
 from .const import (
     DOMAIN,
-    EVENT_SNAPSHOTS_PURGED,
-    EVENT_SNAPSHOT_SUCCESSFUL,
-    EVENT_SNAPSHOT_FAILED,
-    EVENT_SNAPSHOT_START,
+    EVENT_BACKUPS_PURGED,
+    EVENT_BACKUP_SUCCESSFUL,
+    EVENT_BACKUP_FAILED,
+    EVENT_BACKUP_START,
     DATA_AUTO_BACKUP,
 )
 
 ATTR_LAST_FAILURE = "last_failure"
-ATTR_PURGEABLE = "purgeable_snapshots"
-ATTR_MONITORED = "monitored_snapshots"
+ATTR_PURGEABLE = "purgeable_backups"
+ATTR_MONITORED = "monitored_backups"
 
 DEFAULT_ICON = "mdi:package-variant-closed"
 DEFAULT_NAME = "Auto Backup"
@@ -43,11 +43,11 @@ class AutoBackupSensor(Entity):
 
         @callback
         def update(_):
-            """Update sensor on snapshot events."""
+            """Update sensor on backup events."""
             self.async_schedule_update_ha_state(True)
 
         @callback
-        def snapshot_failed(event: EventType):
+        def backup_failed(event: EventType):
             """Store last failed and update sensor"""
             self._attributes[ATTR_LAST_FAILURE] = event.data.get(ATTR_NAME)
             self.async_schedule_update_ha_state(True)
@@ -55,13 +55,13 @@ class AutoBackupSensor(Entity):
         self._listeners = [
             self.hass.bus.async_listen(event, update)
             for event in (
-                EVENT_SNAPSHOT_START,
-                EVENT_SNAPSHOT_SUCCESSFUL,
-                EVENT_SNAPSHOTS_PURGED,
+                EVENT_BACKUP_START,
+                EVENT_BACKUP_SUCCESSFUL,
+                EVENT_BACKUPS_PURGED,
             )
         ]
         self._listeners.append(
-            self.hass.bus.async_listen(EVENT_SNAPSHOT_FAILED, snapshot_failed)
+            self.hass.bus.async_listen(EVENT_BACKUP_FAILED, backup_failed)
         )
 
     async def async_will_remove_from_hass(self) -> None:

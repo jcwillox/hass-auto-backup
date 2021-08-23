@@ -1,10 +1,10 @@
-"""Component to create and remove Hass.io snapshots."""
+"""Component to create and automatically remove Home Assistant backups."""
 import asyncio
 import logging
 import os
 from datetime import datetime, timedelta, timezone
 from os.path import join, isfile
-from typing import List, Dict, Tuple, Set
+from typing import List, Dict, Tuple
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -24,16 +24,20 @@ from slugify import slugify
 
 from .const import (
     DOMAIN,
-    EVENT_SNAPSHOT_FAILED,
-    EVENT_SNAPSHOTS_PURGED,
-    EVENT_SNAPSHOT_SUCCESSFUL,
-    EVENT_SNAPSHOT_START,
+    EVENT_BACKUP_FAILED,
+    EVENT_BACKUPS_PURGED,
+    EVENT_BACKUP_SUCCESSFUL,
+    EVENT_BACKUP_START,
     UNSUB_LISTENER,
     DATA_AUTO_BACKUP,
     DEFAULT_BACKUP_TIMEOUT_SECONDS,
     CONF_AUTO_PURGE,
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
+    EVENT_SNAPSHOTS_PURGED,
+    EVENT_SNAPSHOT_FAILED,
+    EVENT_SNAPSHOT_START,
+    EVENT_SNAPSHOT_SUCCESSFUL,
 )
 from .handler import HassIO, HassioAPIError
 
@@ -48,7 +52,7 @@ ATTR_EXCLUDE = "exclude"
 ATTR_BACKUP_PATH = "backup_path"
 ATTR_DOWNLOAD_PATH = "download_path"
 
-DEFAULT_SNAPSHOT_FOLDERS = {
+DEFAULT_BACKUP_FOLDERS = {
     "ssl": "ssl",
     "share": "share",
     "media": "media",
@@ -59,6 +63,8 @@ DEFAULT_SNAPSHOT_FOLDERS = {
 SERVICE_PURGE = "purge"
 SERVICE_SNAPSHOT_FULL = "snapshot_full"
 SERVICE_SNAPSHOT_PARTIAL = "snapshot_partial"
+SERVICE_BACKUP_FULL = "backup_full"
+SERVICE_BACKUP_PARTIAL = "backup_partial"
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -72,7 +78,7 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-SCHEMA_SNAPSHOT_BASE = vol.Schema(
+SCHEMA_BACKUP_BASE = vol.Schema(
     {
         vol.Optional(ATTR_NAME): cv.string,
         vol.Optional(ATTR_PASSWORD): cv.string,
@@ -87,11 +93,19 @@ SCHEMA_ADDONS_FOLDERS = {
     vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
 }
 
-SCHEMA_SNAPSHOT_FULL = SCHEMA_SNAPSHOT_BASE.extend(
+SCHEMA_BACKUP_FULL = SCHEMA_BACKUP_BASE.extend(
     {vol.Optional(ATTR_EXCLUDE): SCHEMA_ADDONS_FOLDERS}
 )
 
-SCHEMA_SNAPSHOT_PARTIAL = SCHEMA_SNAPSHOT_BASE.extend(SCHEMA_ADDONS_FOLDERS)
+SCHEMA_BACKUP_PARTIAL = SCHEMA_BACKUP_BASE.extend(SCHEMA_ADDONS_FOLDERS)
+
+MAP_SERVICES = {
+    SERVICE_BACKUP_FULL: SCHEMA_BACKUP_FULL,
+    SERVICE_BACKUP_PARTIAL: SCHEMA_BACKUP_PARTIAL,
+    SERVICE_SNAPSHOT_FULL: SCHEMA_BACKUP_FULL,
+    SERVICE_SNAPSHOT_PARTIAL: SCHEMA_BACKUP_PARTIAL,
+    SERVICE_PURGE: None,
+}
 
 PLATFORMS = ["sensor"]
 
@@ -144,42 +158,50 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         auto_backup.update_listener
     )
 
-    # register services.
-    async def snapshot_service_handler(call: ServiceCallType):
-        """Handle Snapshot Creation Service Calls."""
+    ### REGISTER SERVICES ###
+    async def async_service_handler(call: ServiceCallType):
+        """Handle Auto Backup service calls."""
+        listeners = hass.bus.async_listeners()
+        for event in [
+            EVENT_SNAPSHOTS_PURGED,
+            EVENT_SNAPSHOT_FAILED,
+            EVENT_SNAPSHOT_START,
+            EVENT_SNAPSHOT_SUCCESSFUL,
+        ]:
+            if listeners.get(event):
+                _LOGGER.warning(
+                    "Found listeners for the event '%s' which is deprecated and will be removed in Home Assistant 2021.11, use '%s' instead",
+                    event,
+                    event.replace("snapshot", "backup"),
+                )
+
+        if call.service == SERVICE_PURGE:
+            await auto_backup.purge_backups()
+            return
+
         data = call.data.copy()
+        if "snapshot" in call.service:
+            _LOGGER.warning(
+                "The service '%s' is deprecated and will be removed in Home Assistant 2021.11, use '%s' instead",
+                call.service,
+                call.service.replace("snapshot", "backup"),
+            )
+
         if ATTR_BACKUP_PATH in data:
             data[ATTR_DOWNLOAD_PATH] = data.pop(ATTR_BACKUP_PATH)
             _LOGGER.warning(
                 "Using 'backup_path' is deprecated and will be removed in Home Assistant 2021.11, use 'download_path' instead"
             )
 
-        if call.service == SERVICE_SNAPSHOT_PARTIAL:
+        if call.service in [SERVICE_BACKUP_PARTIAL, SERVICE_SNAPSHOT_PARTIAL]:
             data[ATTR_INCLUDE] = {
                 ATTR_FOLDERS: data.pop(ATTR_FOLDERS, []),
                 ATTR_ADDONS: data.pop(ATTR_ADDONS, []),
             }
         await auto_backup.async_create_backup(data)
 
-    async def purge_service_handler(_):
-        """Handle Snapshot Purge Service Calls."""
-        await auto_backup.purge_snapshots()
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SNAPSHOT_FULL,
-        snapshot_service_handler,
-        schema=SCHEMA_SNAPSHOT_FULL,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SNAPSHOT_PARTIAL,
-        snapshot_service_handler,
-        schema=SCHEMA_SNAPSHOT_PARTIAL,
-    )
-
-    hass.services.async_register(DOMAIN, SERVICE_PURGE, purge_service_handler)
+    for service, schema in MAP_SERVICES.items():
+        hass.services.async_register(DOMAIN, service, async_service_handler, schema)
 
     # load the auto backup sensor.
     for component in PLATFORMS:
@@ -203,7 +225,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.data[DOMAIN][UNSUB_LISTENER]()
 
-    for service in [SERVICE_SNAPSHOT_FULL, SERVICE_SNAPSHOT_PARTIAL, SERVICE_PURGE]:
+    for service in MAP_SERVICES.keys():
         hass.services.async_remove(DOMAIN, service)
 
     return unload_ok
@@ -287,7 +309,7 @@ class AutoBackup:
 
         def match_folder(folder):
             folder = folder.casefold()
-            return DEFAULT_SNAPSHOT_FOLDERS.get(folder, folder)
+            return DEFAULT_BACKUP_FOLDERS.get(folder, folder)
 
         return [match_folder(folder) for folder in folders]
 
@@ -300,7 +322,7 @@ class AutoBackup:
         if ATTR_NAME not in data:
             data[ATTR_NAME] = self.generate_backup_name()
 
-        _LOGGER.debug("Creating snapshot '%s'", data[ATTR_NAME])
+        _LOGGER.debug("Creating backup '%s'", data[ATTR_NAME])
 
         include: Dict = data.pop(ATTR_INCLUDE, None)
         exclude: Dict = data.pop(ATTR_EXCLUDE, None)
@@ -321,7 +343,7 @@ class AutoBackup:
                 ]
                 folders = [
                     folder
-                    for folder in DEFAULT_SNAPSHOT_FOLDERS.values()
+                    for folder in DEFAULT_BACKUP_FOLDERS.values()
                     if folder not in folders
                 ]
 
@@ -329,9 +351,9 @@ class AutoBackup:
             data[ATTR_FOLDERS] = folders
             await self._async_create_backup(data, partial=True)
 
-        ### PURGE SNAPSHOTS ###
+        ### PURGE BACKUPS ###
         if self._auto_purge:
-            await self.purge_snapshots()
+            await self.purge_backups()
 
     async def _async_create_backup(self, data: Dict, partial: bool = False):
         """Create backup, update state, fire events, download backup and purge old backups"""
@@ -345,7 +367,7 @@ class AutoBackup:
             data[ATTR_PASSWORD] = "<hidden>"
 
         _LOGGER.debug(
-            "Creating snapshot (%s); keep_days: %s, timeout: %s, data: %s",
+            "Creating backup (%s); keep_days: %s, timeout: %s, data: %s",
             "partial" if partial else "full",
             keep_days,
             self._backup_timeout,
@@ -357,8 +379,9 @@ class AutoBackup:
             data[ATTR_PASSWORD] = password
             del password
 
-        ### CREATE SNAPSHOT ###
+        ### CREATE BACKUP ###
         self._state += 1
+        self._hass.bus.async_fire(EVENT_BACKUP_START, {"name": data[ATTR_NAME]})
         self._hass.bus.async_fire(EVENT_SNAPSHOT_START, {"name": data[ATTR_NAME]})
 
         try:
@@ -371,13 +394,16 @@ class AutoBackup:
                     str(err) + ". There may be a backup already in progress."
                 )
 
-            # snapshot creation was successful
+            # backup creation was successful
             slug = result["slug"]
             _LOGGER.info(
-                "Snapshot created successfully: '%s' (%s)", data[ATTR_NAME], slug
+                "Backup created successfully: '%s' (%s)", data[ATTR_NAME], slug
             )
 
             self._state -= 1
+            self._hass.bus.async_fire(
+                EVENT_BACKUP_SUCCESSFUL, {"name": data[ATTR_NAME], "slug": slug}
+            )
             self._hass.bus.async_fire(
                 EVENT_SNAPSHOT_SUCCESSFUL, {"name": data[ATTR_NAME], "slug": slug}
             )
@@ -400,6 +426,10 @@ class AutoBackup:
             _LOGGER.error("Error during backup. %s", err)
             self._state -= 1
             self._hass.bus.async_fire(
+                EVENT_BACKUP_FAILED,
+                {"name": data[ATTR_NAME], "error": str(err)},
+            )
+            self._hass.bus.async_fire(
                 EVENT_SNAPSHOT_FAILED,
                 {"name": data[ATTR_NAME], "error": str(err)},
             )
@@ -409,8 +439,8 @@ class AutoBackup:
         now = datetime.now(timezone.utc)
         return [slug for slug, expires in self._snapshots.items() if expires < now]
 
-    async def purge_snapshots(self):
-        """Purge expired snapshots from Hass.io."""
+    async def purge_backups(self):
+        """Purge expired backups from the Supervisor."""
         purged = [
             slug
             for slug in self.get_purgeable_snapshots()
@@ -419,28 +449,29 @@ class AutoBackup:
 
         if purged:
             _LOGGER.info(
-                "Purged %s snapshots: %s",
+                "Purged %s backups: %s",
                 len(purged),
                 purged,
             )
+            self._hass.bus.async_fire(EVENT_BACKUPS_PURGED, {"backups": purged})
             self._hass.bus.async_fire(EVENT_SNAPSHOTS_PURGED, {"snapshots": purged})
             # write updated snapshots list to storage
             await self._store.async_save(self._snapshots)
         else:
-            _LOGGER.debug("No snapshots required purging.")
+            _LOGGER.debug("No backups required purging.")
 
     async def _purge_snapshot(self, slug):
         """Purge an individual snapshot from Hass.io."""
-        _LOGGER.debug("Attempting to remove snapshot: %s", slug)
+        _LOGGER.debug("Attempting to remove backup: %s", slug)
         try:
             await self._hassio.remove_backup(slug)
             # remove snapshot expiry.
             del self._snapshots[slug]
         except HassioAPIError as err:
-            if str(err) == "Snapshot does not exist":
+            if str(err) == "Backup does not exist":
                 del self._snapshots[slug]
             else:
-                _LOGGER.error("Failed to purge snapshot: %s", err)
+                _LOGGER.error("Failed to purge backup: %s", err)
                 return False
         return True
 
@@ -463,6 +494,6 @@ class AutoBackup:
         if isfile(destination):
             destination = join(backup_path, f"{slug}.tar")
 
-        return self._hassio.download_snapshot(
+        return self._hassio.download_backup(
             slug, destination, timeout=self._backup_timeout
         )

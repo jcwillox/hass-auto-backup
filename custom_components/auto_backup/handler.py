@@ -112,10 +112,10 @@ class HassIO:
 
         raise HassioAPIError("Failed to call %s" % command)
 
-    async def download_snapshot(
+    async def download_backup(
         self, slug: str, destination: str, timeout: int = DEFAULT_BACKUP_TIMEOUT_SECONDS
     ):
-        """Download and save a snapshot from Hass.io."""
+        """Download and save a backup from Hass.io."""
         command = f"/snapshots/{slug}/download"
 
         try:
@@ -138,7 +138,7 @@ class HassIO:
                             break
                         file.write(chunk)
 
-                _LOGGER.info("Downloaded snapshot '%s' to '%s'", slug, destination)
+                _LOGGER.info("Downloaded backup '%s' to '%s'", slug, destination)
                 return
 
         except asyncio.TimeoutError:
@@ -148,8 +148,8 @@ class HassIO:
             _LOGGER.error("Client error on %s request %s", command, err)
 
         except IOError:
-            _LOGGER.error("Failed to download snapshot '%s' to '%s'", slug, destination)
+            _LOGGER.error("Failed to download backup '%s' to '%s'", slug, destination)
 
         raise HassioAPIError(
-            "Snapshot download failed. Check the logs for more information."
+            "Backup download failed. Check the logs for more information."
         )
