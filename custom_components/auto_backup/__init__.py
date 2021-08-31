@@ -89,8 +89,8 @@ SCHEMA_BACKUP_BASE = vol.Schema(
 )
 
 SCHEMA_ADDONS_FOLDERS = {
-    vol.Optional(ATTR_FOLDERS): vol.All(cv.ensure_list, [cv.string]),
-    vol.Optional(ATTR_ADDONS): vol.All(cv.ensure_list, [cv.string]),
+    vol.Optional(ATTR_FOLDERS, default=[]): vol.All(cv.ensure_list, [cv.string]),
+    vol.Optional(ATTR_ADDONS, default=[]): vol.All(cv.ensure_list, [cv.string]),
 }
 
 SCHEMA_BACKUP_FULL = SCHEMA_BACKUP_BASE.extend(
