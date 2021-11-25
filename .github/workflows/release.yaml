@@ -28,5 +28,7 @@ jobs:
 
     - name: Upload assets
       working-directory: ${{ env.WORKDIR }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh release upload ${{ github.event.release.tag_name }} auto_backup.zip
