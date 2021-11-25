@@ -31,10 +31,15 @@ async def async_setup_entry(
 
 
 class AutoBackupSensor(Entity):
+    _attr_name = DEFAULT_NAME
+    _attr_unique_id = "sensor-auto-backup"
+    _attr_icon = DEFAULT_ICON
+    _attr_unit_of_measurement = "pending backup(s)"
+    _attr_extra_state_attributes = {}
+    _attr_state = None
+
     def __init__(self, auto_backup: AutoBackup):
         self._auto_backup = auto_backup
-
-        self._attributes = {}
         self._listeners = []
 
     async def async_added_to_hass(self):
@@ -49,7 +54,9 @@ class AutoBackupSensor(Entity):
         @callback
         def backup_failed(event: EventType):
             """Store last failed and update sensor"""
-            self._attributes[ATTR_LAST_FAILURE] = event.data.get(ATTR_NAME)
+            self._attr_extra_state_attributes[ATTR_LAST_FAILURE] = event.data.get(
+                ATTR_NAME
+            )
             self.async_schedule_update_ha_state(True)
 
         self._listeners = [
@@ -71,34 +78,10 @@ class AutoBackupSensor(Entity):
             remove()
 
     @property
-    def name(self):
-        """Return the name of the entity."""
-        return DEFAULT_NAME
-
-    @property
-    def unique_id(self):
-        return "sensor-auto-backup"
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend."""
-        return DEFAULT_ICON
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity."""
-        return "pending backup(s)"
-
-    @property
     def state(self):
         """Return the state of the entity."""
         return self._auto_backup.state
 
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        return self._attributes
-
     async def async_update(self):
-        self._attributes[ATTR_MONITORED] = self._auto_backup.monitored
-        self._attributes[ATTR_PURGEABLE] = self._auto_backup.purgeable
+        self._attr_extra_state_attributes[ATTR_MONITORED] = self._auto_backup.monitored
+        self._attr_extra_state_attributes[ATTR_PURGEABLE] = self._auto_backup.purgeable
