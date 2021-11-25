@@ -1,12 +1,12 @@
 import asyncio
 import logging
 import os
+from http import HTTPStatus
 from typing import Dict, List, Optional
 
 import aiohttp
 import async_timeout
 from homeassistant.components.hassio.const import X_HASSIO
-from homeassistant.const import HTTP_OK, HTTP_BAD_REQUEST
 
 from . import DEFAULT_BACKUP_TIMEOUT_SECONDS
 
@@ -97,7 +97,7 @@ class HassIO:
                     timeout=None,
                 )
 
-                if request.status not in (HTTP_OK, HTTP_BAD_REQUEST):
+                if request.status not in (HTTPStatus.OK, HTTPStatus.BAD_REQUEST):
                     _LOGGER.error("%s return code %d.", command, request.status)
                     raise HassioAPIError()
 
