@@ -101,7 +101,7 @@ PLATFORMS = ["sensor"]
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
-    """Setup the Auto Backup component."""
+    """Set up the Auto Backup component."""
     hass.data.setdefault(DOMAIN, {})
     if DOMAIN in config:
         hass.async_create_task(
@@ -217,7 +217,7 @@ class AutoBackup:
         self._backup_timeout = entry.options[CONF_BACKUP_TIMEOUT] * 60
 
     async def load_snapshots_expiry(self):
-        """Load snapshots expiry dates from home assistants storage."""
+        """Load snapshots expiry dates from Home Assistant's storage."""
         data = await self._store.async_load()
 
         if data is not None:
@@ -254,7 +254,7 @@ class AutoBackup:
 
         def match_addon(addon):
             for installed_addon in installed_addons:
-                # perform case insensitive match.
+                # perform case-insensitive match.
                 if addon.casefold() == installed_addon["name"].casefold():
                     return installed_addon["slug"]
                 if addon == installed_addon["slug"]:

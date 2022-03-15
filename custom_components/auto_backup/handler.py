@@ -16,7 +16,7 @@ CHUNK_SIZE = 64 * 1024  # 64 KB
 
 
 class HassioAPIError(RuntimeError):
-    """Return if a API trow a error."""
+    """Return if an API throws an error."""
 
 
 def api_data(funct):

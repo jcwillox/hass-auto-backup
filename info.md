@@ -1,4 +1,4 @@
-While Home Assistant does provide built-in services for creating backups, these are not particularly user friendly and do not provide a way to automatically remove them, this custom component aims to fix that.
+While Home Assistant does provide built-in services for creating backups, these are not particularly user-friendly and do not provide a way to automatically remove them, this custom component aims to fix that.
 
 **Note: Requires the Home Assistant [Supervisor](https://www.home-assistant.io/installation) to Create Backups.**
 
