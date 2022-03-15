@@ -1,34 +1,32 @@
-name: 'Publish'
+name: "Publish"
 
 on:
   release:
     types: [published]
 
-env:
-  WORKDIR: custom_components/auto_backup
+defaults:
+  run:
+    working-directory: custom_components/auto_backup
 
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v2
+      - name: "Checkout the repository"
+        uses: actions/checkout@v2
 
-    - name: Update version
-      working-directory: ${{ env.WORKDIR }}
-      run: |
-        current="$(jq --raw-output .version manifest.json | sed 's/\./\\./g')"
-        sed -i s/$current/${{ github.event.release.tag_name }}/ manifest.json
+      - name: "Update version"
+        run: |
+          current="$(jq --raw-output .version manifest.json | sed 's/\./\\./g')"
+          sed -i s/$current/${{ github.event.release.tag_name }}/ manifest.json
 
-    - name: Zip component
-      working-directory: ${{ env.WORKDIR }}
-      run: |
-        zip auto_backup.zip -r ./
+      - name: "Zip component"
+        run: |
+          zip auto_backup.zip -r ./
 
-    - name: Upload assets
-      working-directory: ${{ env.WORKDIR }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload ${{ github.event.release.tag_name }} auto_backup.zip
+      - name: "Upload assets"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} auto_backup.zip
