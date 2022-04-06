@@ -3,6 +3,7 @@
   "domain": "auto_backup",
   "name": "Auto Backup",
   "documentation": "https://github.com/jcwillox/hass-auto-backup",
+  "issue_tracker": "https://github.com/jcwillox/hass-auto-backup/issues",
   "dependencies": [],
   "codeowners": ["@jcwillox"],
   "requirements": [],
