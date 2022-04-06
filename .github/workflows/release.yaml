@@ -10,7 +10,7 @@ defaults:
 
 jobs:
   publish:
-    name: Publish
+    name: "Publish"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout the repository"
