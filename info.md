@@ -45,4 +45,4 @@ On Home Assistant 2021.3.0 and above you can use the badge below to automaticall
   
 ## Images
 
-<img src="https://github.com/jcwillox/hass-auto-backup/blob/master/example-sensor.png?raw=true" width="400px">
+<img src="https://github.com/jcwillox/hass-auto-backup/blob/main/example-sensor.png?raw=true" width="400px">
