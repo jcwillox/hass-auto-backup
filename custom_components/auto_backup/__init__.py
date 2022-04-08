@@ -8,14 +8,17 @@ from typing import List, Dict, Tuple
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant.components.backup.const import DOMAIN as DOMAIN_BACKUP
 from homeassistant.components.hassio import (
     ATTR_FOLDERS,
     ATTR_ADDONS,
     ATTR_PASSWORD,
+    is_hassio,
 )
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
@@ -36,7 +39,7 @@ from .const import (
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
 )
-from .handler import HassIO, HassioAPIError
+from .handlers import SupervisorHandler, HassioAPIError, BackupHandler, HandlerBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,11 +107,8 @@ PLATFORMS = ["sensor"]
 
 
 @callback
-def is_hassio() -> bool:
-    for env in ("SUPERVISOR", "SUPERVISOR_TOKEN"):
-        if not getenv(env):
-            return False
-    return True
+def is_backup(hass: HomeAssistant) -> bool:
+    return DOMAIN_BACKUP in hass.config.components
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
@@ -129,32 +129,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Auto Backup from a config entry."""
     _LOGGER.info("Setting up Auto Backup config entry %s", entry.entry_id)
 
-    # Check local setup
-    if not is_hassio():
+    # check backup integration or supervisor is available
+    if not is_hassio(hass) and not is_backup(hass):
         _LOGGER.error(
-            "Missing 'SUPERVISOR' environment variable. Please ensure you are running Home Assistant Supervised!"
+            "You must be running Home Assistant Supervised or have the 'backup' integration enabled."
         )
         return False
 
-    host = getenv("SUPERVISOR")
-    session = async_get_clientsession(hass)
-    hassio = HassIO(session, host)
-
     options = entry.data or entry.options
+    options = {
+        CONF_AUTO_PURGE: options.get(CONF_AUTO_PURGE, True),
+        CONF_BACKUP_TIMEOUT: options.get(CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT),
+    }
 
-    # initialise AutoBackup class.
-    auto_backup = hass.data[DOMAIN][DATA_AUTO_BACKUP] = AutoBackup(
-        hass,
-        hassio,
-        options.get(CONF_AUTO_PURGE, True),
-        options.get(CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT),
-    )
+    if is_hassio(hass):
+        handler = SupervisorHandler(getenv("SUPERVISOR"), async_get_clientsession(hass))
+    else:
+        handler = BackupHandler(hass.data[DOMAIN_BACKUP])
 
-    await auto_backup.load_snapshots_expiry()
-
+    auto_backup = AutoBackup(hass, options, handler)
+    hass.data[DOMAIN][DATA_AUTO_BACKUP] = auto_backup
     hass.data[DOMAIN][UNSUB_LISTENER] = entry.add_update_listener(
         auto_backup.update_listener
     )
+
+    await auto_backup.load_snapshots_expiry()
 
     ### REGISTER SERVICES ###
     async def async_service_handler(call: ServiceCallType):
@@ -202,19 +201,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 
 class AutoBackup:
-    def __init__(
-        self,
-        hass: HomeAssistantType,
-        hassio: HassIO,
-        auto_purge: bool,
-        backup_timeout: int,
-    ):
+    def __init__(self, hass: HomeAssistantType, options: Dict, handler: HandlerBase):
         self._hass = hass
-        self._hassio = hassio
-        self._auto_purge = auto_purge
-        self._backup_timeout = backup_timeout * 60
+        self._handler = handler
+        self._auto_purge = options[CONF_AUTO_PURGE]
+        self._backup_timeout = options[CONF_BACKUP_TIMEOUT] * 60
         self._state = 0
         self._snapshots = {}
+        self._supervised = is_hassio(hass)
         self._store = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{STORAGE_KEY}", encoder=JSONEncoder
         )
@@ -284,11 +278,26 @@ class AutoBackup:
         return [match_folder(folder) for folder in folders]
 
     def generate_backup_name(self) -> str:
+        if not self._supervised:
+            return "Unknown"
         time_zone = dt_util.get_time_zone(self._hass.config.time_zone)
         return datetime.now(time_zone).strftime("%A, %b %d, %Y")
 
     async def async_create_backup(self, data: Dict):
         """Identify actual type of backup to create and handle include/exclude options"""
+        if not self._supervised:
+            disallowed_options = [ATTR_NAME, ATTR_PASSWORD]
+            for option in disallowed_options:
+                if option in data:
+                    raise HomeAssistantError(
+                        f"The '{option}' option is not supported on non-supervised installations."
+                    )
+
+            if ATTR_INCLUDE in data or ATTR_EXCLUDE in data:
+                raise HomeAssistantError(
+                    f"Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
+                )
+
         if ATTR_NAME not in data:
             data[ATTR_NAME] = self.generate_backup_name()
 
@@ -301,7 +310,7 @@ class AutoBackup:
             # must be a full backup
             await self._async_create_backup(data)
         else:
-            installed_addons = await self._hassio.get_installed_addons()
+            installed_addons = await self._handler.get_installed_addons()
             addons, folders = self.ensure_slugs(include or exclude, installed_addons)
 
             if exclude:
@@ -355,7 +364,7 @@ class AutoBackup:
 
         try:
             try:
-                result = await self._hassio.create_backup(
+                result = await self._handler.create_backup(
                     data, partial, timeout=self._backup_timeout
                 )
             except HassioAPIError as err:
@@ -365,13 +374,13 @@ class AutoBackup:
 
             # backup creation was successful
             slug = result["slug"]
-            _LOGGER.info(
-                "Backup created successfully: '%s' (%s)", data[ATTR_NAME], slug
-            )
+            name = result.get(ATTR_NAME, data[ATTR_NAME])
+
+            _LOGGER.info("Backup created successfully: '%s' (%s)", name, slug)
 
             self._state -= 1
             self._hass.bus.async_fire(
-                EVENT_BACKUP_SUCCESSFUL, {"name": data[ATTR_NAME], "slug": slug}
+                EVENT_BACKUP_SUCCESSFUL, {"name": name, "slug": slug}
             )
 
             if keep_days is not None:
@@ -385,10 +394,10 @@ class AutoBackup:
             # download backup to location if specified
             if download_path:
                 self._hass.async_create_task(
-                    self.async_download_backup(data[ATTR_NAME], slug, download_path)
+                    self.async_download_backup(name, slug, download_path)
                 )
 
-        except HassioAPIError as err:
+        except Exception as err:
             _LOGGER.error("Error during backup. %s", err)
             self._state -= 1
             self._hass.bus.async_fire(
@@ -425,7 +434,7 @@ class AutoBackup:
         """Purge an individual snapshot from Hass.io."""
         _LOGGER.debug("Attempting to remove backup: %s", slug)
         try:
-            await self._hassio.remove_backup(slug)
+            await self._handler.remove_backup(slug)
             # remove snapshot expiry.
             del self._snapshots[slug]
         except HassioAPIError as err:
@@ -455,6 +464,6 @@ class AutoBackup:
         if isfile(destination):
             destination = join(backup_path, f"{slug}.tar")
 
-        return self._hassio.download_backup(
+        return self._handler.download_backup(
             slug, destination, timeout=self._backup_timeout
         )

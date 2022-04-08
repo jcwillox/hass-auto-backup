@@ -5,6 +5,7 @@
   "documentation": "https://github.com/jcwillox/hass-auto-backup",
   "issue_tracker": "https://github.com/jcwillox/hass-auto-backup/issues",
   "dependencies": [],
+  "after_dependencies": ["backup", "hassio"],
   "codeowners": ["@jcwillox"],
   "requirements": [],
   "iot_class": "local_push",

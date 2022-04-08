@@ -3,17 +3,18 @@ import logging
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
+from homeassistant.components.hassio import is_hassio
+from homeassistant.core import callback, HomeAssistant
 
-from . import is_hassio
+from . import is_backup
 from .const import DOMAIN, DEFAULT_BACKUP_TIMEOUT, CONF_AUTO_PURGE, CONF_BACKUP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def validate_input():
+def validate_input(hass: HomeAssistant):
     """Validate existence of Hass.io."""
-    return is_hassio()
+    return is_hassio(hass) or is_backup(hass)
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -29,8 +30,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._async_current_entries():
             return self.async_abort(reason="single_instance")
 
-        if not validate_input():
-            return self.async_abort(reason="missing_supervisor")
+        if not validate_input(self.hass):
+            return self.async_abort(reason="missing_service")
 
         return self.async_create_entry(title="Auto Backup", data=user_input)
 

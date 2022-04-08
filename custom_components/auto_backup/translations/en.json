@@ -9,7 +9,7 @@
         },
         "abort": {
             "single_instance": "Only a single configuration of Auto Backup is allowed.",
-            "missing_supervisor": "You must be running Home Assistant Supervised (missing environment variables)."
+            "missing_service": "You must be running Home Assistant Supervised or have the 'backup' integration enabled"
         }
     },
     "options": {
