@@ -14,6 +14,7 @@ backup_full:
       example: "1234"
       selector:
         text:
+          type: password
     keep_days:
       name: Keep days
       description: The number of days to keep the backup.
@@ -61,13 +62,27 @@ backup_partial:
       description: List of folders to backup.
       example: homeassistant, Share, Local add-ons, ssl, media
       selector:
-        object:
+        select:
+          multiple: true
+          custom_value: true
+          options:
+            - label: Config
+              value: config
+            - label: Share
+              value: share
+            - label: SSL
+              value: ssl
+            - label: Media
+              value: media
+            - label: Local Add-ons
+              value: addons
     password:
       name: Password
       description: Optional password to secure backup.
       example: "1234"
       selector:
         text:
+          type: password
     keep_days:
       name: Keep days
       description: The number of days to keep the backup.
