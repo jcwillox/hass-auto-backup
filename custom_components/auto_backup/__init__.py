@@ -51,6 +51,8 @@ DEFAULT_BACKUP_FOLDERS = {
     "ssl": "ssl",
     "share": "share",
     "media": "media",
+    "addons": "addons/local",
+    "config": "homeassistant",
     "local add-ons": "addons/local",
     "home assistant configuration": "homeassistant",
 }
@@ -305,7 +307,7 @@ class AutoBackup:
                 ]
                 folders = [
                     folder
-                    for folder in DEFAULT_BACKUP_FOLDERS.values()
+                    for folder in set(DEFAULT_BACKUP_FOLDERS.values())
                     if folder not in folders
                 ]
 
