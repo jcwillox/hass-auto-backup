@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from http import HTTPStatus
+from os import getenv
 from typing import Dict, List, Optional
 
 import aiohttp
@@ -68,6 +69,7 @@ class SupervisorHandler(HandlerBase):
         """Initialize Hass.io API."""
         self._ip = ip
         self._session = session
+        self._headers = {X_HASSIO: getenv("SUPERVISOR_TOKEN")}
 
     async def send_command(self, command, method="post", payload=None, timeout=10):
         """Send API command to Hass.io.
@@ -80,7 +82,7 @@ class SupervisorHandler(HandlerBase):
                     method,
                     f"http://{self._ip}{command}",
                     json=payload,
-                    headers={X_HASSIO: os.getenv("SUPERVISOR_TOKEN", "")},
+                    headers=self._headers,
                     timeout=None,
                 )
 
@@ -133,7 +135,7 @@ class SupervisorHandler(HandlerBase):
                 request = await self._session.request(
                     "get",
                     f"http://{self._ip}{command}",
-                    headers={X_HASSIO: os.getenv("SUPERVISOR_TOKEN", "")},
+                    headers=self._headers,
                     timeout=None,
                 )
 
