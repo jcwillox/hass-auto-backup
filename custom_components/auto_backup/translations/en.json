@@ -4,12 +4,12 @@
         "step": {
             "user": {
                 "title": "\uD83D\uDDC3️ Auto Backup",
-                "description": "Improved backup service for Hass.io that can automatically remove backups"
+                "description": "Improved backup service for Home Assistant that can automatically remove backups"
             }
         },
         "abort": {
             "single_instance": "Only a single configuration of Auto Backup is allowed.",
-            "missing_hassio": "Hass.io does not appear to be installed (missing environment variables)."
+            "missing_supervisor": "You must be running Home Assistant Supervised (missing environment variables)."
         }
     },
     "options": {

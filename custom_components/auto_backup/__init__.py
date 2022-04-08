@@ -1,8 +1,8 @@
 """Component to create and automatically remove Home Assistant backups."""
 import asyncio
 import logging
-import os
 from datetime import datetime, timedelta, timezone
+from os import getenv
 from os.path import join, isfile
 from typing import List, Dict, Tuple
 
@@ -15,7 +15,8 @@ from homeassistant.components.hassio import (
 )
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import ATTR_NAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
@@ -102,6 +103,14 @@ MAP_SERVICES = {
 PLATFORMS = ["sensor"]
 
 
+@callback
+def is_hassio() -> bool:
+    for env in ("SUPERVISOR", "SUPERVISOR_TOKEN"):
+        if not getenv(env):
+            return False
+    return True
+
+
 async def async_setup(hass: HomeAssistantType, config: ConfigType):
     """Set up the Auto Backup component."""
     hass.data.setdefault(DOMAIN, {})
@@ -121,18 +130,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.info("Setting up Auto Backup config entry %s", entry.entry_id)
 
     # Check local setup
-    for env in ("HASSIO", "HASSIO_TOKEN"):
-        if os.environ.get(env):
-            continue
+    if not is_hassio():
         _LOGGER.error(
-            "Missing %s environment variable. Please check you have Hass.io installed!",
-            env,
+            "Missing 'SUPERVISOR' environment variable. Please ensure you are running Home Assistant Supervised!"
         )
         return False
 
-    host = os.environ["HASSIO"]
-    web_session = hass.helpers.aiohttp_client.async_get_clientsession()
-    hassio = HassIO(hass.loop, web_session, host)
+    host = getenv("SUPERVISOR")
+    session = async_get_clientsession(hass)
+    hassio = HassIO(session, host)
 
     options = entry.data or entry.options
 

@@ -35,15 +35,9 @@ def api_data(funct):
 class HassIO:
     """Small API wrapper for Hass.io."""
 
-    def __init__(
-        self,
-        loop: asyncio.AbstractEventLoop,
-        web_session: aiohttp.ClientSession,
-        ip: str,
-    ) -> None:
+    def __init__(self, session: aiohttp.ClientSession, ip: str) -> None:
         """Initialize Hass.io API."""
-        self.loop = loop
-        self._web_session = web_session
+        self._session = session
         self._ip = ip
 
     @api_data
@@ -89,11 +83,11 @@ class HassIO:
         """
         try:
             with async_timeout.timeout(timeout):
-                request = await self._web_session.request(
+                request = await self._session.request(
                     method,
                     f"http://{self._ip}{command}",
                     json=payload,
-                    headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
+                    headers={X_HASSIO: os.getenv("SUPERVISOR_TOKEN", "")},
                     timeout=None,
                 )
 
@@ -120,10 +114,10 @@ class HassIO:
 
         try:
             with async_timeout.timeout(timeout):
-                request = await self._web_session.request(
+                request = await self._session.request(
                     "get",
                     f"http://{self._ip}{command}",
-                    headers={X_HASSIO: os.environ.get("HASSIO_TOKEN", "")},
+                    headers={X_HASSIO: os.getenv("SUPERVISOR_TOKEN", "")},
                     timeout=None,
                 )
 
