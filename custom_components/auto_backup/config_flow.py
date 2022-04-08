@@ -34,15 +34,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_create_entry(title="Auto Backup", data=user_input)
 
-    async def async_step_import(self, user_input=None):
-        """Import a config entry from configuration.yaml."""
-        _LOGGER.info("Importing config entry from configuration.yaml")
-        backup_timeout = user_input.get(CONF_BACKUP_TIMEOUT)
-        if backup_timeout:
-            user_input[CONF_BACKUP_TIMEOUT] = backup_timeout / 60
-
-        return await self.async_step_user(user_input)
-
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):

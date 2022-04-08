@@ -1,4 +1,4 @@
-# <span style="font-family: 'Segoe UI Emoji'">🗃</span> Auto Backup
+# 🗃️ Auto Backup
 
 [![HACS Badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![License](https://img.shields.io/github/license/jcwillox/hass-auto-backup?style=for-the-badge)](https://github.com/jcwillox/hass-auto-backup/blob/main/LICENSE)
@@ -106,33 +106,16 @@ A slugified version of the backups name will be used for the filename, if a file
 
 After installing Auto Backup via HACS, it can then be setup via the UI, go to the Integrations menu and add `Auto Backup`.
 
-On Home Assistant 2021.3.0 and above you can use the badge below to automatically start the setup
-
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
 
-<details>
-<summary>Manual Configuration (Deprecated)</summary>
-<br>
+### Options
 
-Just add `auto_backup` to your home assistant configuration.yaml file.
-
-> ```yaml
-> # Example configuration.yaml entry
-> auto_backup:
->   auto_purge: true
-> ```
-
-### Configuration Variables
-
-- **auto_purge** _(boolean) (Optional)_
-  - _Default value:_ `true`
+- **Automatically delete expired backups**
   - This option will automatically purge any expired backups when creating a new backup.
 
-- **backup_timeout** _(integer) (seconds) (Optional)_
-  - _Default value:_ `1200` (20 min)
-  - You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups.
+- **Backup Timeout**
+  - You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups. Increasing this might make Auto Backup less reliable at monitoring backups to delete.
 
-</details>
 
 ## Examples
 
