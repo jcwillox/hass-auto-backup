@@ -311,19 +311,24 @@ class AutoBackup:
             await self._async_create_backup(data)
         else:
             installed_addons = await self._handler.get_installed_addons()
-            addons, folders = self.ensure_slugs(include or exclude, installed_addons)
+
+            addons = installed_addons
+            folders = set(DEFAULT_BACKUP_FOLDERS.values())
+
+            if include:
+                addons, folders = self.ensure_slugs(include, installed_addons)
 
             if exclude:
-                # identify included addons/folders
+                excluded_addons, excluded_folders = self.ensure_slugs(
+                    exclude, installed_addons
+                )
                 addons = [
-                    installed["slug"]
-                    for installed in installed_addons
-                    if installed["slug"] not in addons
+                    addon["slug"]
+                    for addon in addons
+                    if addon["slug"] not in excluded_addons
                 ]
                 folders = [
-                    folder
-                    for folder in set(DEFAULT_BACKUP_FOLDERS.values())
-                    if folder not in folders
+                    folder for folder in folders if folder not in excluded_folders
                 ]
 
             data[ATTR_ADDONS] = addons
