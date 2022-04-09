@@ -100,7 +100,7 @@ A slugified version of the backups name will be used for the filename, if a file
 
 ## Sensor
 
-<img src="example-sensor.png" width="400px">
+<img src="docs/assets/example-sensor.png" width="400px">
 
 ## Configuration
 

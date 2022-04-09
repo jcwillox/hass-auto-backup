@@ -1,0 +1,28 @@
+Auto Backup is an Improved Backup Service for Home Assistant that can Automatically Remove Backups and Supports Generational Backup Schemes.
+
+!!! important ""
+    While Home Assistant does provide built-in services for creating backups, they do not provide the ability to exclude items from a backup, or a way to automatically remove them, this custom component aims to fix that.
+
+## Features
+
+* [x] Exclude addons/folders from a backup.
+* [x] Automatically delete backups after an individually specified amount of time.
+* [x] Provides more advanced and configurable [service calls](services.md).
+* [x] Download backups to a specified directory after completion (for example a usb drive).
+* [x] Allows the use of addon names instead of slugs.
+* [x] Provides a [sensor](sensors.md) to monitor the status of your backups.
+* [x] Creates [events](events.md) for when backups are started/created/failed/deleted.
+* [x] Supports [generational backup](advanced-examples.md#generational-backups) schemes.
+
+## Configuration
+
+After installing Auto Backup via HACS, it can then be setup via the UI, by going to **Configuration** → **Devices & Services** → **Add Integration** → **Auto Backup** or by clicking the button below.
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
+
+### Options
+
+| Option                               | Description                                                                                                                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Automatically delete expired backups | This option will automatically purge any expired backups when creating a new backup.                                                                                                                         |
+| Backup Timeout                       | You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups. Increasing this might make Auto Backup less reliable at monitoring backups to delete. |

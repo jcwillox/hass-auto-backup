@@ -1,0 +1,32 @@
+name: "Docs"
+
+on:
+  push:
+    paths:
+      - docs/**
+      - mkdocs.yaml
+      - .github/workflows/docs.yaml
+  workflow_dispatch:
+
+jobs:
+  deploy_docs:
+    name: "Deploy Docs"
+    runs-on: ubuntu-latest
+    concurrency: deploy-docs-${{ github.ref }}
+    env:
+      SITE_DESCRIPTION: ${{ github.event.repository.description }}
+    steps:
+      - name: "Checkout the repository"
+        uses: actions/checkout@v2
+
+      - name: "Setup Python"
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.x
+          cache: ${{ !env.ACT && 'pip' || '' }}
+
+      - name: "Install dependencies"
+        run: pip install mkdocs-material>8,<9
+
+      - name: "Build & Deploy 🚀"
+        run: mkdocs gh-deploy --force

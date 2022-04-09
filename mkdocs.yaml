@@ -1,0 +1,72 @@
+site_name: Auto Backup
+site_description: !ENV SITE_DESCRIPTION
+site_author: Joshua Cowie-Willox
+site_url: https://jcwillox.github.io/hass-auto-backup
+
+repo_name: jcwillox/hass-auto-backup
+repo_url: https://github.com/jcwillox/hass-auto-backup
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; Joshua Cowie-Willox
+
+nav:
+  - "overview.md"
+  - "services.md"
+  - "events.md"
+  - "sensors.md"
+  - Examples:
+      - "examples.md"
+      - "advanced-examples.md"
+  - Guides:
+      - "home-assistant-core.md"
+
+theme:
+  name: "material"
+  icon:
+    logo: material/package-variant-closed
+  favicon: assets/logo.png
+  features:
+    - navigation.instant
+    - navigation.expand
+    - navigation.top
+    - content.tabs.link
+    - navigation.sections
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: light blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: light blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+extra_css:
+  - assets/extra.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: "#"
+  - pymdownx.snippets
+  - pymdownx.caret
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
