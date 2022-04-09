@@ -24,9 +24,10 @@ jobs:
         with:
           python-version: 3.x
           cache: ${{ !env.ACT && 'pip' || '' }}
+          cache-dependency-path: docs/requirements.txt
 
       - name: "Install dependencies"
-        run: pip install mkdocs-material>8,<9
+        run: pip install -r docs/requirements.txt
 
       - name: "Build & Deploy 🚀"
         run: mkdocs gh-deploy --force
