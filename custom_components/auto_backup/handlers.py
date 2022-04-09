@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import os
+import shutil
 from http import HTTPStatus
 from os import getenv
 from typing import Dict, List, Optional
@@ -187,7 +187,7 @@ class BackupHandler(HandlerBase):
     ):
         backup = await self._manager.get_backup(slug)
         if backup:
-            os.rename(backup.path, destination)
+            shutil.copy(backup.path, destination)
         else:
             _LOGGER.error(
                 "Cannot move backup (%s) to '%s' as it does not exist.",
