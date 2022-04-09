@@ -65,18 +65,6 @@ SERVICE_PURGE = "purge"
 SERVICE_BACKUP_FULL = "backup_full"
 SERVICE_BACKUP_PARTIAL = "backup_partial"
 
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: {
-            vol.Optional(CONF_AUTO_PURGE, default=True): cv.boolean,
-            vol.Optional(
-                CONF_BACKUP_TIMEOUT, default=DEFAULT_BACKUP_TIMEOUT_SECONDS
-            ): vol.Coerce(int),
-        }
-    },
-    extra=vol.ALLOW_EXTRA,
-)
-
 SCHEMA_BACKUP_BASE = vol.Schema(
     {
         vol.Optional(ATTR_NAME): cv.string,
