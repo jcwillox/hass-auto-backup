@@ -1,48 +1,55 @@
-While Home Assistant does provide built-in services for creating backups, these are not particularly user-friendly and do not provide a way to automatically remove them, this custom component aims to fix that.
+Auto Backup is an Improved Backup Service for Home Assistant that can Automatically Remove Backups and Supports Generational Backup Schemes.
 
-**Note: Requires the Home Assistant [Supervisor](https://www.home-assistant.io/installation) to Create Backups.**
+> While Home Assistant does provide built-in services for creating backups, they do not provide the ability to exclude items from a backup, or a way to automatically remove them, this custom component aims to fix that.
+
+For more information and examples check the [documentation](https://jcwillox.github.io/hass-auto-backup).
 
 ## Features
-* `keep_days` parameter to automatically remove backups.
-* `keep_days` can be set individually for each service call.
-* Provides Documented Backup Services (Partial, Full backups).
-* Support for Generational Backup Schemes.
-* Download backups to a specified directory after completion (for example a usb drive).
-* Allows use of addon names instead of slugs.
-* Allows friendly folder names.
-* Adds a sensor to monitor the status of your backups.
+* Provides more advanced and configurable [service calls](https://jcwillox.github.io/hass-auto-backup/services).
+* [Exclude addons/folders](https://jcwillox.github.io/hass-auto-backup/services) from a backup.
+* [Automatically delete backups](https://jcwillox.github.io/hass-auto-backup/services/#keep-days) after an individually specified amount of time.
+* [Download backups](https://jcwillox.github.io/hass-auto-backup/services/#download-path) to a specified directory after completion (for example a usb drive).
+* Allows the use of [addon names instead of slugs](https://jcwillox.github.io/hass-auto-backup/services/#addon-and-folder-names).
+* Provides a [sensor](https://jcwillox.github.io/hass-auto-backup/sensors) to monitor the status of your backups.
+* Creates [events](https://jcwillox.github.io/hass-auto-backup/events) for when backups are started/created/failed/deleted.
+* Supports [generational backup](https://jcwillox.github.io/hass-auto-backup/advanced-examples/#generational-backups) schemes.
 
 ## Services
-* **auto_backup.backup_full**
-* **auto_backup.backup_partial**
-* **auto_backup.purge**
 
-For more information and examples check the [full documentation](https://github.com/jcwillox/hass-auto-backup).
+[Automation Examples using Services](https://jcwillox.github.io/hass-auto-backup/examples)
+
+* [`auto_backup.backup`](https://jcwillox.github.io/hass-auto-backup/services/#auto_backupbackup)
+* [`auto_backup.backup_full`](https://jcwillox.github.io/hass-auto-backup/services/#auto_backupbackup_full)
+* [`auto_backup.backup_partial`](https://jcwillox.github.io/hass-auto-backup/services/#auto_backupbackup_partial)
+* [`auto_backup.purge`](https://jcwillox.github.io/hass-auto-backup/services/#auto_backupbackup_purge)
 
 ## Events
-* **auto_backup.backup_start**
-* **auto_backup.backup_successful**
-* **auto_backup.backup_failed**
-* **auto_backup.purged_backups**
+
+[Automation Example using Events](https://jcwillox.github.io/hass-auto-backup/events/#example-automation-using-events)
+
+* [`auto_backup.backup_start`](https://jcwillox.github.io/hass-auto-backup/events)
+* [`auto_backup.backup_successful`](https://jcwillox.github.io/hass-auto-backup/events)
+* [`auto_backup.backup_failed`](https://jcwillox.github.io/hass-auto-backup/events)
+* [`auto_backup.purged_backups`](https://jcwillox.github.io/hass-auto-backup/events)
 
 ## Configuration
 
-Auto Backup can be setup via the UI, go to the Integrations menu and add `Auto Backup`.
-
-On Home Assistant 2021.3.0 and above you can use the badge below to automatically start the setup.
+After installing Auto Backup via [HACS](https://hacs.xyz/), it can then be setup via the UI, by going to **Configuration** → **Devices & Services** → **Add Integration** → **Auto Backup** or by clicking the button below.
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
 
-### Configuration Variables
+### Options
 
-- **auto_purge** _(boolean) (Optional)_
-  - _Default value:_ `true`
+- **Automatically delete expired backups**
   - This option will automatically purge any expired backups when creating a new backup.
 
-- **backup_timeout** _(integer) (seconds) (Optional)_
-  - _Default value:_ `1200` (20 min)
-  - You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups.
-  
+- **Backup Timeout**
+  - You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups. Increasing this might make Auto Backup less reliable at monitoring backups to delete.
+
 ## Images
 
 <img alt="Sensor Example" src="https://github.com/jcwillox/hass-auto-backup/blob/main/docs/assets/example-sensor.png?raw=true" width="400px">
+
+---
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jcwillox)
