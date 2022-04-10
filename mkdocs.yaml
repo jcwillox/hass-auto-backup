@@ -19,6 +19,7 @@ nav:
       - "advanced-examples.md"
   - Guides:
       - "home-assistant-core.md"
+      - "home-assistant-supervised.md"
 
 theme:
   name: "material"
