@@ -10,7 +10,7 @@ edit_uri: edit/main/docs/
 copyright: Copyright &copy; Joshua Cowie-Willox
 
 nav:
-  - "overview.md"
+  - "index.md"
   - "services.md"
   - "events.md"
   - "sensors.md"
