@@ -1,3 +1,7 @@
 .task-list .task-list-item {
   padding-left: 4px;
 }
+
+h1#services ~ div table tbody > tr > td:first-child {
+  white-space: nowrap;
+}
