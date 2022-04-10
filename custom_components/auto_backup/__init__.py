@@ -101,10 +101,10 @@ SCHEMA_BACKUP = vol.Any(
     ),
     SCHEMA_BACKUP_BASE.extend(
         {
-            vol.Optional(ATTR_INCLUDE_ADDONS, default=[]): SCHEMA_LIST_STRING,
-            vol.Optional(ATTR_INCLUDE_FOLDERS, default=[]): SCHEMA_LIST_STRING,
-            vol.Optional(ATTR_EXCLUDE_ADDONS, default=[]): SCHEMA_LIST_STRING,
-            vol.Optional(ATTR_EXCLUDE_FOLDERS, default=[]): SCHEMA_LIST_STRING,
+            vol.Optional(ATTR_INCLUDE_ADDONS): SCHEMA_LIST_STRING,
+            vol.Optional(ATTR_INCLUDE_FOLDERS): SCHEMA_LIST_STRING,
+            vol.Optional(ATTR_EXCLUDE_ADDONS): SCHEMA_LIST_STRING,
+            vol.Optional(ATTR_EXCLUDE_FOLDERS): SCHEMA_LIST_STRING,
         }
     ),
 )
