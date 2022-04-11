@@ -23,6 +23,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
+from homeassistant.loader import bind_hass
 from homeassistant.util import dt as dt_util
 from slugify import slugify
 
@@ -121,7 +122,12 @@ PLATFORMS = ["sensor"]
 
 
 @callback
+@bind_hass
 def is_backup(hass: HomeAssistant) -> bool:
+    """Return true if backup integration is loaded.
+
+    Async friendly.
+    """
     return DOMAIN_BACKUP in hass.config.components
 
 
