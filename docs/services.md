@@ -6,7 +6,7 @@ Services are the core of Auto Backup, they are the only methods that cause Auto 
 
 Create a full or partial backup.
 
-This is the primary method and includes the functionality on the `backup_full` and `backup_partial`.
+This is the primary method and includes the functionality of the `backup_full` and `backup_partial` services.
 
 | Parameter                                    | Description                                               | Type        | Example                                                     |
 | -------------------------------------------- | --------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
