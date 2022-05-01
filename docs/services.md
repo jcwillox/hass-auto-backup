@@ -108,10 +108,10 @@ Create a full backup with optional exclusions.
 
 #### Exclude Object
 
-| Parameter                            | Description                              | Type   | Example                                              |
-| ------------------------------------ | ---------------------------------------- | ------ | ---------------------------------------------------- |
-| [`addons`](#addon-and-folder-names)  | List of addons to backup (name or slug). | `list` | `#!json ["Almond", "glances", "core_mariadb"]`       |
-| [`folders`](#addon-and-folder-names) | List of folders to backup.               | `list` | `#!json ["Local add-ons", "homeassistant", "share"]` |
+| Parameter                            | Description                                               | Type   | Example                                              |
+| ------------------------------------ | --------------------------------------------------------- | ------ | ---------------------------------------------------- |
+| [`addons`](#addon-and-folder-names)  | List of addons to exclude from the backup (name or slug). | `list` | `#!json ["Almond", "glances", "core_mariadb"]`       |
+| [`folders`](#addon-and-folder-names) | List of folders to exclude from the backup.               | `list` | `#!json ["Local add-ons", "homeassistant", "share"]` |
 
 ## `auto_backup.backup_partial`
 
