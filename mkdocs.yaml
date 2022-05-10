@@ -9,6 +9,13 @@ edit_uri: edit/main/docs/
 
 copyright: Copyright &copy; Joshua Cowie-Willox
 
+extra:
+  social:
+    - icon: material/coffee
+      link: https://ko-fi.com/jcwillox
+    - icon: fontawesome/brands/github
+      link: https://github.com/jcwillox
+
 nav:
   - "index.md"
   - "services.md"
@@ -40,17 +47,20 @@ theme:
       accent: light blue
       toggle:
         icon: material/weather-sunny
-        name: Switch to dark mode
+        name: Switch to dark theme
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: green
       accent: light blue
       toggle:
         icon: material/weather-night
-        name: Switch to light mode
+        name: Switch to light theme
 
 extra_css:
   - assets/extra.css
+
+extra_javascript:
+  - assets/extra.js
 
 plugins:
   - search
