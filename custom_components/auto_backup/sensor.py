@@ -1,7 +1,10 @@
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import callback
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import HomeAssistantType, EventType
 
 from . import AutoBackup
@@ -18,29 +21,35 @@ ATTR_LAST_FAILURE = "last_failure"
 ATTR_PURGEABLE = "purgeable_backups"
 ATTR_MONITORED = "monitored_backups"
 
-DEFAULT_ICON = "mdi:package-variant-closed"
-DEFAULT_NAME = "Auto Backup"
-
 
 async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
+    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up Auto Backup sensors based on a config entry."""
     auto_backup = hass.data[DOMAIN][DATA_AUTO_BACKUP]
-    async_add_entities([AutoBackupSensor(auto_backup)])
+    async_add_entities([AutoBackupSensor(entry, auto_backup)])
 
 
-class AutoBackupSensor(Entity):
-    _attr_name = DEFAULT_NAME
+class AutoBackupSensor(SensorEntity):
+    entity_description = SensorEntityDescription(
+        key="backups",
+        icon="mdi:package-variant-closed",
+        name="Auto Backup",
+        native_unit_of_measurement="pending backup(s)",
+    )
+
     _attr_unique_id = "sensor-auto-backup"
-    _attr_icon = DEFAULT_ICON
-    _attr_unit_of_measurement = "pending backup(s)"
     _attr_extra_state_attributes = {}
-    _attr_state = None
 
-    def __init__(self, auto_backup: AutoBackup):
+    def __init__(self, entry: ConfigEntry, auto_backup: AutoBackup):
         self._auto_backup = auto_backup
-        self._listeners = []
+        self._attr_device_info = DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url="https://jcwillox.github.io/hass-auto-backup",
+            manufacturer="Auto Backup",
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
+        )
 
     async def async_added_to_hass(self):
         """Run when entity about to be added."""
@@ -52,33 +61,25 @@ class AutoBackupSensor(Entity):
             self.async_schedule_update_ha_state(True)
 
         @callback
-        def backup_failed(event: EventType):
+        def backup_failed(event_: EventType):
             """Store last failed and update sensor"""
-            self._attr_extra_state_attributes[ATTR_LAST_FAILURE] = event.data.get(
+            self._attr_extra_state_attributes[ATTR_LAST_FAILURE] = event_.data.get(
                 ATTR_NAME
             )
             self.async_schedule_update_ha_state(True)
 
-        self._listeners = [
-            self.hass.bus.async_listen(event, update)
-            for event in (
-                EVENT_BACKUP_START,
-                EVENT_BACKUP_SUCCESSFUL,
-                EVENT_BACKUPS_PURGED,
-            )
-        ]
-        self._listeners.append(
+        for event in (
+            EVENT_BACKUP_START,
+            EVENT_BACKUP_SUCCESSFUL,
+            EVENT_BACKUPS_PURGED,
+        ):
+            self.async_on_remove(self.hass.bus.async_listen(event, update))
+        self.async_on_remove(
             self.hass.bus.async_listen(EVENT_BACKUP_FAILED, backup_failed)
         )
 
-    async def async_will_remove_from_hass(self) -> None:
-        """Run when entity will be removed from hass."""
-        await super().async_will_remove_from_hass()
-        for remove in self._listeners:
-            remove()
-
     @property
-    def state(self):
+    def native_value(self):
         """Return the state of the entity."""
         return self._auto_backup.state
 

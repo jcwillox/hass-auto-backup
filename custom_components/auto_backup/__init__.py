@@ -169,9 +169,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     auto_backup = AutoBackup(hass, options, handler)
     hass.data[DOMAIN][DATA_AUTO_BACKUP] = auto_backup
-    hass.data[DOMAIN][UNSUB_LISTENER] = entry.add_update_listener(
-        auto_backup.update_listener
-    )
+    entry.async_on_unload(entry.add_update_listener(auto_backup.update_listener))
 
     await auto_backup.load_snapshots_expiry()
 
@@ -204,32 +202,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     for service, schema in MAP_SERVICES.items():
         hass.services.async_register(DOMAIN, service, async_service_handler, schema)
 
-    # load the auto backup sensor.
-    for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
-
+    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in PLATFORMS
-            ]
-        )
-    )
-
-    hass.data[DOMAIN][UNSUB_LISTENER]()
-
     for service in MAP_SERVICES.keys():
         hass.services.async_remove(DOMAIN, service)
 
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 class AutoBackup:
