@@ -7,8 +7,8 @@ from typing import Dict, List, Optional
 
 import aiohttp
 import async_timeout
+from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup import BackupManager
-from homeassistant.components.hassio.const import X_HASSIO
 
 from . import DEFAULT_BACKUP_TIMEOUT_SECONDS
 
@@ -69,7 +69,7 @@ class SupervisorHandler(HandlerBase):
         """Initialize Hass.io API."""
         self._ip = ip
         self._session = session
-        self._headers = {X_HASSIO: getenv("SUPERVISOR_TOKEN")}
+        self._headers = {AUTHORIZATION: f"Bearer {getenv('SUPERVISOR_TOKEN')}"}
 
     async def send_command(self, command, method="post", payload=None, timeout=10):
         """Send API command to Hass.io.
