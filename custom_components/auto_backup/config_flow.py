@@ -24,16 +24,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
-        if user_input is None:
-            return self.async_show_form(step_id="user")
+        if user_input is not None:
+            if self._async_current_entries():
+                return self.async_abort(reason="single_instance")
 
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance")
+            if not validate_input(self.hass):
+                return self.async_abort(reason="missing_service")
 
-        if not validate_input(self.hass):
-            return self.async_abort(reason="missing_service")
+            return self.async_create_entry(title="Auto Backup", data=user_input)
 
-        return self.async_create_entry(title="Auto Backup", data=user_input)
+        return self.async_show_form(step_id="user")
 
     @staticmethod
     @callback
@@ -51,25 +51,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        # migrate option from data
-        if self.config_entry.data:
-            _LOGGER.info("Migrating data to options")
-            data = self.config_entry.data
-            self.hass.config_entries.async_update_entry(
-                entry=self.config_entry, data={}, options=data
-            )
-        else:
-            data = self.config_entry.options
-
-        auto_purge = data.get(CONF_AUTO_PURGE, True)
-        backup_timeout = data.get(CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT)
-
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_AUTO_PURGE, default=auto_purge): bool,
-                    vol.Optional(CONF_BACKUP_TIMEOUT, default=backup_timeout): int,
+                    vol.Required(
+                        CONF_AUTO_PURGE,
+                        default=self.config_entry.options.get(CONF_AUTO_PURGE, True),
+                    ): bool,
+                    vol.Required(
+                        CONF_BACKUP_TIMEOUT,
+                        default=self.config_entry.options.get(
+                            CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT
+                        ),
+                    ): int,
                 }
             ),
         )

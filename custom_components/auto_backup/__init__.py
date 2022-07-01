@@ -156,10 +156,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
         return False
 
-    options = entry.data or entry.options
     options = {
-        CONF_AUTO_PURGE: options.get(CONF_AUTO_PURGE, True),
-        CONF_BACKUP_TIMEOUT: options.get(CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT),
+        CONF_AUTO_PURGE: entry.options.get(CONF_AUTO_PURGE, True),
+        CONF_BACKUP_TIMEOUT: entry.options.get(
+            CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT
+        ),
     }
 
     if is_hassio(hass):
