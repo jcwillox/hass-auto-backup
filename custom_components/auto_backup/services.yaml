@@ -2,9 +2,9 @@ backup:
   name: Backup
   description: Create a full or partial backup.
   fields:
-    name:
+    name: &name
       name: Name
-      description: Backup Name.
+      description: Optional name, defaults to the current date and time.
       example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
       selector:
         text:
@@ -60,14 +60,14 @@ backup:
               value: media
             - label: Local Add-ons
               value: addons
-    password:
+    password: &password
       name: Password
       description: Optional password to secure backup.
       example: "1234"
       selector:
         text:
           type: password
-    keep_days:
+    keep_days: &keep_days
       name: Keep days
       description: The number of days to keep the backup.
       example: "2"
@@ -78,42 +78,22 @@ backup:
           step: 0.01
           unit_of_measurement: days
           mode: box
-    download_path:
+    download_path: &download_path
       name: Download path
-      description: Download the backup to a location after creation.
-      example: /usb_drive
+      description: Locations to download the backup to after creation.
+      example: "[/usb_drive]"
       advanced: true
       selector:
-        text:
+        select:
+          multiple: true
+          custom_value: true
+          options: []
 
 backup_full:
   name: Backup Full
   description: Create a full backup with optional exclusions.
   fields:
-    name:
-      name: Name
-      description: Optional or it will be the current date and time.
-      example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
-      selector:
-        text:
-    password:
-      name: Password
-      description: Optional password to secure backup.
-      example: "1234"
-      selector:
-        text:
-          type: password
-    keep_days:
-      name: Keep days
-      description: The number of days to keep the backup.
-      example: "2"
-      selector:
-        number:
-          min: 0
-          max: 10000
-          step: 0.01
-          unit_of_measurement: days
-          mode: box
+    name: *name
     exclude:
       name: Exclude
       description: Addons/Folders to exclude from the backup.
@@ -121,24 +101,15 @@ backup_full:
       default: {"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}
       selector:
         object:
-    download_path:
-      name: Download path
-      description: Download the backup to a location after creation.
-      example: /usb_drive
-      advanced: true
-      selector:
-        text:
+    password: *password
+    keep_days: *keep_days
+    download_path: *download_path
 
 backup_partial:
   name: Backup Partial
   description: Create a partial backup.
   fields:
-    name:
-      name: Name
-      description: Backup Name.
-      example: "Automatic Backup {{ now().strftime('%Y-%m-%d') }}"
-      selector:
-        text:
+    name: *name
     addons:
       name: Add-ons
       description: List of addons to backup (name or slug).
@@ -165,31 +136,9 @@ backup_partial:
               value: media
             - label: Local Add-ons
               value: addons
-    password:
-      name: Password
-      description: Optional password to secure backup.
-      example: "1234"
-      selector:
-        text:
-          type: password
-    keep_days:
-      name: Keep days
-      description: The number of days to keep the backup.
-      example: "2"
-      selector:
-        number:
-          min: 0
-          max: 10000
-          step: 0.01
-          unit_of_measurement: days
-          mode: box
-    download_path:
-      name: Download path
-      description: Download the backup to a location after creation.
-      example: /usb_drive
-      advanced: true
-      selector:
-        text:
+    password: *password
+    keep_days: *keep_days
+    download_path: *download_path
 
 purge:
   name: Purge

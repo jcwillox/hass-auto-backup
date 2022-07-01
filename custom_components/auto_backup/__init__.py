@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from os import getenv
 from os.path import join, isfile
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -76,7 +76,7 @@ SCHEMA_BACKUP_BASE = vol.Schema(
         vol.Optional(ATTR_NAME): cv.string,
         vol.Optional(ATTR_PASSWORD): cv.string,
         vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
-        vol.Optional(ATTR_DOWNLOAD_PATH): cv.isdir,
+        vol.Optional(ATTR_DOWNLOAD_PATH): vol.All(cv.ensure_list, [cv.isdir]),
     }
 )
 
@@ -356,7 +356,7 @@ class AutoBackup:
     async def _async_create_backup(self, data: Dict, partial: bool = False):
         """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
-        download_path = data.pop(ATTR_DOWNLOAD_PATH, None)
+        download_paths: Optional[List[str]] = data.pop(ATTR_DOWNLOAD_PATH, None)
 
         ### LOG DEBUG INFO ###
         # ensure password is scrubbed from logs
@@ -411,10 +411,11 @@ class AutoBackup:
                 await self._store.async_save(self._snapshots)
 
             # download backup to location if specified
-            if download_path:
-                self._hass.async_create_task(
-                    self.async_download_backup(name, slug, download_path)
-                )
+            if download_paths:
+                for download_path in download_paths:
+                    self._hass.async_create_task(
+                        self.async_download_backup(name, slug, download_path)
+                    )
 
         except Exception as err:
             _LOGGER.error("Error during backup. %s", err)
