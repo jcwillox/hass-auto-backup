@@ -1,5 +1,4 @@
 """Component to create and automatically remove Home Assistant backups."""
-import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from os import getenv
@@ -15,14 +14,14 @@ from homeassistant.components.hassio import (
     ATTR_PASSWORD,
     is_hassio,
 )
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType, ServiceCallType
+from homeassistant.helpers.typing import HomeAssistantType, ServiceCallType
 from homeassistant.loader import bind_hass
 from homeassistant.util import dt as dt_util
 from slugify import slugify
@@ -131,20 +130,6 @@ def is_backup(hass: HomeAssistant) -> bool:
     return DOMAIN_BACKUP in hass.config.components
 
 
-async def async_setup(hass: HomeAssistantType, config: ConfigType):
-    """Set up the Auto Backup component."""
-    hass.data.setdefault(DOMAIN, {})
-    if DOMAIN in config:
-        hass.async_create_task(
-            hass.config_entries.flow.async_init(
-                DOMAIN,
-                context={"source": SOURCE_IMPORT},
-                data=config[DOMAIN],
-            )
-        )
-    return True
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Auto Backup from a config entry."""
     _LOGGER.info("Setting up Auto Backup config entry %s", entry.entry_id)
@@ -169,7 +154,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         handler = BackupHandler(hass.data[DOMAIN_BACKUP])
 
     auto_backup = AutoBackup(hass, options, handler)
-    hass.data[DOMAIN][DATA_AUTO_BACKUP] = auto_backup
+    hass.data.setdefault(DOMAIN, {})[DATA_AUTO_BACKUP] = auto_backup
     entry.async_on_unload(entry.add_update_listener(auto_backup.update_listener))
 
     await auto_backup.load_snapshots_expiry()
