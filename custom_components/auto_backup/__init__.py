@@ -74,7 +74,7 @@ SCHEMA_BACKUP_BASE = vol.Schema(
     {
         vol.Optional(ATTR_NAME): cv.string,
         vol.Optional(ATTR_PASSWORD): cv.string,
-        vol.Optional(ATTR_KEEP_DAYS): vol.Coerce(float),
+        vol.Optional(ATTR_KEEP_DAYS): vol.Any(None, vol.Coerce(float)),
         vol.Optional(ATTR_DOWNLOAD_PATH): vol.All(cv.ensure_list, [cv.isdir]),
     }
 )
