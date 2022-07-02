@@ -262,6 +262,7 @@ class AutoBackup:
                 if addon == installed_addon["slug"]:
                     return addon
             _LOGGER.warning("Addon '%s' does not exist", addon)
+            return addon
 
         return [match_addon(addon) for addon in addons]
 
