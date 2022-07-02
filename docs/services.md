@@ -8,16 +8,16 @@ Create a full or partial backup.
 
 This is the primary method and includes the functionality of the `backup_full` and `backup_partial` services.
 
-| Parameter                                    | Description                                               | Type        | Example                                                     |
-| -------------------------------------------- | --------------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `name`                                       | Backup name.                                              | `string`    | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
-| [`include_addons`](#addon-and-folder-names)  | List of addons to include in the backup (name or slug).   | `list`      | `#!json ["Almond", "glances", "core_mariadb"]`              |
-| [`include_folders`](#addon-and-folder-names) | List of folders to include in the backup.                 | `list`      | `#!json ["Local add-ons", "homeassistant", "share"]`        |
-| [`exclude_addons`](#addon-and-folder-names)  | List of addons to exclude from the backup (name or slug). | `list`      | `#!json ["Almond", "glances", "core_mariadb"]`              |
-| [`exclude_folders`](#addon-and-folder-names) | List of folders to exclude from the backup.               | `list`      | `#!json ["Local add-ons", "homeassistant", "share"]`        |
-| `password`                                   | Optional password to secure backup.                       | `string`    | `#!json 1234`                                               |
-| [`keep_days`](#keep-days)                    | The number of days to keep the backup.                    | `float`     | `#!json 2`                                                  |
-| [`download_path`](#download-path)            | Directory to download the backup to after creation.       | `directory` | `/usb_drive`                                                |
+| Parameter                                    | Description                                               | Type     | Example                                                     |
+| -------------------------------------------- | --------------------------------------------------------- | -------- | ----------------------------------------------------------- |
+| `name`                                       | Optional name, defaults to the current date and time.     | `string` | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
+| [`include_addons`](#addon-and-folder-names)  | List of addons to include in the backup (name or slug).   | `list`   | `#!json ["Almond", "glances", "core_mariadb"]`              |
+| [`include_folders`](#addon-and-folder-names) | List of folders to include in the backup.                 | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
+| [`exclude_addons`](#addon-and-folder-names)  | List of addons to exclude from the backup (name or slug). | `list`   | `#!json ["Almond", "glances", "core_mariadb"]`              |
+| [`exclude_folders`](#addon-and-folder-names) | List of folders to exclude from the backup.               | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
+| `password`                                   | Optional password to secure backup.                       | `string` | `#!json 1234`                                               |
+| [`keep_days`](#keep-days)                    | The number of days to keep the backup.                    | `float`  | `#!json 2`                                                  |
+| [`download_path`](#download-path)            | Locations to download the backup to after creation.       | `list`   | `#!json ["/usb_drive"]`                                     |
 
 ??? example "Create a full backup"
 
@@ -83,28 +83,29 @@ The `keep_days` parameter allows you to specify how long the backup should be ke
 
 ### Download Path
 
-The `download_path` parameter allows you to specify a directory to download the backup to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
+The `download_path` parameter allows you to specify a location or of list of locations to download the backup to after creation. This directory must be accessible from Home Assistant. If you are running in docker your paths will be relative to the container for example your Home Assistant configuration directory is stored under `/config` and the share folder is under `/share`.
 
 !!! tip
-    The backup will still be stored under `/backup` and show up on the Supervisor backups page, it will only be downloaded to the location specified, to immediately delete the backup from the Supervisor use a negative value for `keep_days` (e.g. `#!yaml keep_days: -1` ).
+    The backup will still be stored under `/backup` and show up on the [backups](https://my.home-assistant.io/redirect/backup) page, it will only be copied/downloaded to the location specified, to immediately delete the backup use a negative value for `keep_days` (e.g. `#!yaml keep_days: -1` ).
 
 !!! info
     A slugified version of the backups name will be used for the filename, if a file with that name already exists the backups id (slug) will be used instead.
 
 !!! note
-    When running Home Assistant Supervised integrations do not have direct access to the `/backup` folder, which is why the backup is downloaded and simply copied.
+    When running on **Home Assistant Core** backups will be copied not downloaded. When running **Home Assistant Supervised** integrations do not have direct access to the `/backup` folder, which is why the backup is downloaded and not simply copied.
+
 
 ## `auto_backup.backup_full`
 
 Create a full backup with optional exclusions.
 
-| Parameter                         | Description                                         | Type                                | Example                                                                                                                      |
-| --------------------------------- | --------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `name`                            | Backup name.                                        | `string`                            | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}`                                                                  |
-| `password`                        | Optional password to secure backup.                 | `string`                            | `#!json 1234`                                                                                                                |
-| [`keep_days`](#keep-days)         | The number of days to keep the backup.              | `float`                             | `#!json 2`                                                                                                                   |
-| `exclude`                         | Addons/Folders to exclude from the backup.          | [`Exclude Object`](#exclude-object) | [`#!json {"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}`](examples.md#excluding-addonsfolders-from-a-backup) |
-| [`download_path`](#download-path) | Directory to download the backup to after creation. | `directory`                         | `/usb_drive`                                                                                                                 |
+| Parameter                         | Description                                           | Type                                | Example                                                                                                                      |
+| --------------------------------- | ----------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `name`                            | Optional name, defaults to the current date and time. | `string`                            | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}`                                                                  |
+| `exclude`                         | Addons/Folders to exclude from the backup.            | [`Exclude Object`](#exclude-object) | [`#!json {"addons": ["MariaDB"], "folders": ["Local add-ons", "share"]}`](examples.md#excluding-addonsfolders-from-a-backup) |
+| `password`                        | Optional password to secure backup.                   | `string`                            | `#!json 1234`                                                                                                                |
+| [`keep_days`](#keep-days)         | The number of days to keep the backup.                | `float`                             | `#!json 2`                                                                                                                   |
+| [`download_path`](#download-path) | Locations to download the backup to after creation.   | `list`                              | `#!json ["/usb_drive"]`                                                                                                      |
 
 #### Exclude Object
 
@@ -117,14 +118,14 @@ Create a full backup with optional exclusions.
 
 Create a partial backup.
 
-| Parameter                            | Description                                         | Type        | Example                                                     |
-| ------------------------------------ | --------------------------------------------------- | ----------- | ----------------------------------------------------------- |
-| `name`                               | Backup name.                                        | `string`    | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
-| [`addons`](#addon-and-folder-names)  | List of addons to backup (name or slug).            | `list`      | `#!json ["Almond", "glances", "core_mariadb"]`              |
-| [`folders`](#addon-and-folder-names) | List of folders to backup.                          | `list`      | `#!json ["Local add-ons", "homeassistant", "share"]`        |
-| `password`                           | Optional password to secure backup.                 | `string`    | `#!json 1234`                                               |
-| [`keep_days`](#keep-days)            | The number of days to keep the backup.              | `float`     | `#!json 2`                                                  |
-| [`download_path`](#download-path)    | Directory to download the backup to after creation. | `directory` | `/usb_drive`                                                |
+| Parameter                            | Description                                           | Type     | Example                                                     |
+| ------------------------------------ | ----------------------------------------------------- | -------- | ----------------------------------------------------------- |
+| `name`                               | Optional name, defaults to the current date and time. | `string` | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
+| [`addons`](#addon-and-folder-names)  | List of addons to backup (name or slug).              | `list`   | `#!json ["Almond", "glances", "core_mariadb"]`              |
+| [`folders`](#addon-and-folder-names) | List of folders to backup.                            | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
+| `password`                           | Optional password to secure backup.                   | `string` | `#!json 1234`                                               |
+| [`keep_days`](#keep-days)            | The number of days to keep the backup.                | `float`  | `#!json 2`                                                  |
+| [`download_path`](#download-path)    | Locations to download the backup to after creation.   | `list`   | `#!json ["/usb_drive"]`                                     |
 
 ## `auto_backup.purge`
 

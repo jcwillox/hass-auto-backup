@@ -2,6 +2,11 @@
 
 ## Generational Backups
 
+???+ blueprint "Blueprint"
+    Create backups each day and keep them for a configurable amount of time, backups are stored less frequently the older they are.
+
+    [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A//raw.githubusercontent.com/jcwillox/home-assistant-blueprints/main/automation/automatic_backups.yaml)
+
 ### Preface
 
 [Generational backups :octicons-link-external-16:](https://en.wikipedia.org/wiki/Backup_rotation_scheme#Grandfather-father-son) allow you to store backups over a long period of time while still having frequent enough backups to be useful for recovery. This is done by reducing the frequency of backups as they get older. <br>
