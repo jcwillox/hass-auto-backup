@@ -311,7 +311,7 @@ class AutoBackup:
             # must be a full backup
             await self._async_create_backup(data)
         else:
-            installed_addons = await self._handler.get_installed_addons()
+            installed_addons = await self._handler.get_addons()
 
             addons = installed_addons
             folders = set(DEFAULT_BACKUP_FOLDERS.values())
