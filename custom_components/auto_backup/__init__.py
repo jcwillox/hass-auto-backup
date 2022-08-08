@@ -15,7 +15,7 @@ from homeassistant.components.hassio import (
     is_hassio,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_NAME
+from homeassistant.const import ATTR_NAME, __version__
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -280,7 +280,7 @@ class AutoBackup:
 
     def generate_backup_name(self) -> str:
         if not self._supervised:
-            return "Unknown"
+            return f"Core {__version__}"
         time_zone = dt_util.get_time_zone(self._hass.config.time_zone)
         return datetime.now(time_zone).strftime("%A, %b %d, %Y")
 
