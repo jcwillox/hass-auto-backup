@@ -1,6 +1,7 @@
 """Component to create and automatically remove Home Assistant backups."""
 import logging
 from datetime import datetime, timedelta, timezone
+from fnmatch import fnmatchcase
 from os import getenv
 from os.path import join, isfile
 from typing import List, Dict, Tuple, Optional
@@ -244,27 +245,29 @@ class AutoBackup:
         addons = inclusion[ATTR_ADDONS]
         folders = inclusion[ATTR_FOLDERS]
         return (
-            cls.ensure_addon_slugs(addons, installed_addons),
+            list(cls.ensure_addon_slugs(addons, installed_addons)),
             cls.ensure_folder_slugs(folders),
         )
 
     @staticmethod
     def ensure_addon_slugs(addons, installed_addons) -> List[str]:
-        """Replace addon names with their appropriate slugs."""
+        """Expand wildcards and replace addon names with their appropriate slugs."""
         if not addons:
             return []
 
-        def match_addon(addon):
+        for addon in addons:
+            matched = False
             for installed_addon in installed_addons:
                 # perform case-insensitive match.
                 if addon.casefold() == installed_addon["name"].casefold():
-                    return installed_addon["slug"]
-                if addon == installed_addon["slug"]:
-                    return addon
-            _LOGGER.warning("Addon '%s' does not exist", addon)
-            return addon
-
-        return [match_addon(addon) for addon in addons]
+                    yield installed_addon["slug"]
+                    matched = True
+                if fnmatchcase(installed_addon["slug"], addon):
+                    yield installed_addon["slug"]
+                    matched = True
+            if not matched:
+                _LOGGER.warning("Addon '%s' does not exist", addon)
+                yield addon
 
     @staticmethod
     def ensure_folder_slugs(folders) -> List[str]:
@@ -332,6 +335,8 @@ class AutoBackup:
             if include:
                 addons, folders = self.ensure_slugs(include, installed_addons)
 
+                _LOGGER.debug("Including; addons: %s, folders: %s", addons, folders)
+
             if exclude:
                 excluded_addons, excluded_folders = self.ensure_slugs(
                     exclude, installed_addons
@@ -344,6 +349,15 @@ class AutoBackup:
                 folders = [
                     folder for folder in folders if folder not in excluded_folders
                 ]
+
+                _LOGGER.debug(
+                    "Excluding; addons: %s, folders: %s",
+                    excluded_addons,
+                    excluded_folders,
+                )
+                _LOGGER.debug(
+                    "Including (excluded); addons: %s, folders: %s", addons, folders
+                )
 
             data[ATTR_ADDONS] = addons
             data[ATTR_FOLDERS] = folders
