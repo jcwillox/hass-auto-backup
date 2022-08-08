@@ -72,8 +72,8 @@ SERVICE_BACKUP_PARTIAL = "backup_partial"
 
 SCHEMA_BACKUP_BASE = vol.Schema(
     {
-        vol.Optional(ATTR_NAME): cv.string,
-        vol.Optional(ATTR_PASSWORD): cv.string,
+        vol.Optional(ATTR_NAME): vol.Any(None, cv.string),
+        vol.Optional(ATTR_PASSWORD): vol.Any(None, cv.string),
         vol.Optional(ATTR_KEEP_DAYS): vol.Any(None, vol.Coerce(float)),
         vol.Optional(ATTR_DOWNLOAD_PATH): vol.All(cv.ensure_list, [cv.isdir]),
     }
@@ -284,23 +284,36 @@ class AutoBackup:
         time_zone = dt_util.get_time_zone(self._hass.config.time_zone)
         return datetime.now(time_zone).strftime("%A, %b %d, %Y")
 
-    async def async_create_backup(self, data: Dict):
-        """Identify actual type of backup to create and handle include/exclude options"""
+    def validate_backup_config(self, config: Dict):
+        """Validate the backup config."""
         if not self._supervised:
             disallowed_options = [ATTR_NAME, ATTR_PASSWORD]
             for option in disallowed_options:
-                if option in data:
+                if config.get(option):
                     raise HomeAssistantError(
                         f"The '{option}' option is not supported on non-supervised installations."
                     )
 
-            if ATTR_INCLUDE in data or ATTR_EXCLUDE in data:
+            # allow `include` if it only contains the configuration
+            if ATTR_INCLUDE in config and not config.get(ATTR_EXCLUDE):
+                # ensure no addons were included
+                if not config[ATTR_INCLUDE][ATTR_ADDONS]:
+                    folders = config[ATTR_INCLUDE][ATTR_FOLDERS]
+                    folders = self.ensure_folder_slugs(folders)
+                    if folders == ["homeassistant"]:
+                        del config[ATTR_INCLUDE]
+
+            if ATTR_INCLUDE in config or ATTR_EXCLUDE in config:
                 raise HomeAssistantError(
                     f"Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
                 )
 
-        if ATTR_NAME not in data:
-            data[ATTR_NAME] = self.generate_backup_name()
+        if not config.get(ATTR_NAME):
+            config[ATTR_NAME] = self.generate_backup_name()
+
+    async def async_create_backup(self, data: Dict):
+        """Identify actual type of backup to create and handle include/exclude options"""
+        self.validate_backup_config(data)
 
         _LOGGER.debug("Creating backup '%s'", data[ATTR_NAME])
 

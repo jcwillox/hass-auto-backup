@@ -10,7 +10,7 @@ import async_timeout
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup import BackupManager
 
-from . import DEFAULT_BACKUP_TIMEOUT_SECONDS
+from .const import DEFAULT_BACKUP_TIMEOUT_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
