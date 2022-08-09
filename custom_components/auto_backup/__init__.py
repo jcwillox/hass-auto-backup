@@ -110,7 +110,6 @@ SCHEMA_BACKUP = vol.Any(
     ),
 )
 
-
 MAP_SERVICES = {
     SERVICE_BACKUP: SCHEMA_BACKUP,
     SERVICE_BACKUP_FULL: SCHEMA_BACKUP_FULL,
@@ -240,7 +239,9 @@ class AutoBackup:
         return self._state
 
     @classmethod
-    def ensure_slugs(cls, inclusion, installed_addons) -> Tuple[List, List]:
+    def ensure_slugs(
+        cls, inclusion: Dict[str, List[str]], installed_addons: List[Dict]
+    ) -> Tuple[List[str], List[str]]:
         """Helper method to slugify both the addon and folder sections"""
         addons = inclusion[ATTR_ADDONS]
         folders = inclusion[ATTR_FOLDERS]
@@ -250,7 +251,7 @@ class AutoBackup:
         )
 
     @staticmethod
-    def ensure_addon_slugs(addons, installed_addons) -> List[str]:
+    def ensure_addon_slugs(addons: List[str], installed_addons: List[Dict]):
         """Expand wildcards and replace addon names with their appropriate slugs."""
         if not addons:
             return []
@@ -270,7 +271,7 @@ class AutoBackup:
                 yield addon
 
     @staticmethod
-    def ensure_folder_slugs(folders) -> List[str]:
+    def ensure_folder_slugs(folders: List[str]) -> List[str]:
         """Convert folder name to lower case and replace friendly folder names."""
         if not folders:
             return []
@@ -329,8 +330,11 @@ class AutoBackup:
         else:
             installed_addons = await self._handler.get_addons()
 
-            addons = installed_addons
-            folders = set(DEFAULT_BACKUP_FOLDERS.values())
+            _LOGGER.debug("Installed addons: %s", installed_addons)
+
+            # default to include all addons and folders
+            addons: List[str] = [addon["slug"] for addon in installed_addons]
+            folders: List[str] = list(set(DEFAULT_BACKUP_FOLDERS.values()))
 
             if include:
                 addons, folders = self.ensure_slugs(include, installed_addons)
@@ -341,11 +345,8 @@ class AutoBackup:
                 excluded_addons, excluded_folders = self.ensure_slugs(
                     exclude, installed_addons
                 )
-                addons = [
-                    addon["slug"]
-                    for addon in addons
-                    if addon["slug"] not in excluded_addons
-                ]
+
+                addons = [addon for addon in addons if addon not in excluded_addons]
                 folders = [
                     folder for folder in folders if folder not in excluded_folders
                 ]
