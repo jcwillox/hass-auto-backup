@@ -1,0 +1,64 @@
+name: Report an issue with the Auto Backup integration
+description: Report an issue with the Auto Backup integration.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue form is for reporting bugs.
+        Try fill as many fields as you can, to make it easier to address the issue.
+  - type: textarea
+    attributes:
+      label: The problem
+      description: >-
+        Describe the issue you are experiencing here, to communicate to the
+        maintainers. Tell us what you were trying to do and what happened.
+
+        Provide a clear and concise description of what the problem is.
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+  - type: input
+    id: version
+    attributes:
+      label: What version of Auto Backup has the issue?
+      description: >
+        Can be found in: [HACS -> Integrations -> Auto Backup][repo]. The version will be displayed in first chip at the top.
+
+        [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)][repo]
+
+        [repo]: https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration
+  - type: dropdown
+    attributes:
+      label: What type of installation are you running?
+      description: >
+        Can be found in: [Settings -> About](https://my.home-assistant.io/redirect/info/).
+
+        [![Open your Home Assistant instance and show your Home Assistant version information.](https://my.home-assistant.io/badges/info.svg)](https://my.home-assistant.io/redirect/info/)
+      options:
+        - Home Assistant OS
+        - Home Assistant Container
+        - Home Assistant Supervised
+        - Home Assistant Core
+  - type: markdown
+    attributes:
+      value: |
+        # Details
+  - type: textarea
+    attributes:
+      label: Example YAML snippet
+      description: |
+        If applicable, please provide an example piece of YAML that can help reproduce this problem.
+        This can be from an automation, script, scene or configuration.
+      render: yml
+  - type: textarea
+    attributes:
+      label: Anything in the logs that might be useful for us?
+      description: For example, error message, or stack traces.
+      render: python3
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.
