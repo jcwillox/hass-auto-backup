@@ -5,6 +5,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/jcwillox/hass-auto-backup?style=for-the-badge)](https://github.com/jcwillox/hass-auto-backup/releases)
 [![Size](https://img.badgesize.io/https:/github.com/jcwillox/hass-auto-backup/releases/latest/download/auto_backup.zip?style=for-the-badge)](https://github.com/jcwillox/hass-auto-backup/releases)
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge)](https://github.com/psf/black)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration)
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=auto_backup)
 
 Auto Backup is an Improved Backup Service for Home Assistant that can Automatically Remove Backups and Supports Generational Backup Schemes.
