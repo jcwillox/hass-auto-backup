@@ -24,11 +24,18 @@ body:
     attributes:
       label: What version of Auto Backup has the issue?
       description: >
-        Can be found in: [HACS -> Integrations -> Auto Backup][repo]. The version will be displayed in first chip at the top.
+        Can be found in: [HACS -> Integrations -> Auto Backup](https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration). The version will be displayed in first chip at the top.
 
-        [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)][repo]
+        [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration)
+  - type: input
+    id: ha_version
+    attributes:
+      label: What version of Home Assistant Core are you running?
+      placeholder: core-
+      description: >
+        Can be found in: [Settings -> About](https://my.home-assistant.io/redirect/info/).
 
-        [repo]: https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration
+        [![Open your Home Assistant instance and show your Home Assistant version information.](https://my.home-assistant.io/badges/info.svg)](https://my.home-assistant.io/redirect/info/)
   - type: dropdown
     attributes:
       label: What type of installation are you running?
