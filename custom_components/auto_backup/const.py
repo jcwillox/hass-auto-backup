@@ -15,4 +15,6 @@ EVENT_BACKUP_START = f"{DOMAIN}.backup_start"
 EVENT_BACKUP_FAILED = f"{DOMAIN}.backup_failed"
 EVENT_BACKUPS_PURGED = f"{DOMAIN}.purged_backups"
 
+PATCH_NAME = "patch.name"
+
 PLATFORMS = [Platform.SENSOR]

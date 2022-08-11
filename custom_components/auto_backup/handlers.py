@@ -9,8 +9,10 @@ import aiohttp
 import async_timeout
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup import BackupManager
+from homeassistant.const import ATTR_NAME
+from homeassistant.exceptions import HomeAssistantError
 
-from .const import DEFAULT_BACKUP_TIMEOUT_SECONDS
+from .const import DEFAULT_BACKUP_TIMEOUT_SECONDS, PATCH_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,9 +41,9 @@ class HandlerBase:
         """Returns a list of the installed addons."""
         raise NotImplementedError
 
-    def create_backup(
+    async def create_backup(
         self, data: Dict, partial: bool = False, timeout: Optional[int] = None
-    ):
+    ) -> Dict:
         """Create a full or partial backup.
 
         This method return a coroutine.
@@ -172,10 +174,38 @@ class BackupHandler(HandlerBase):
     async def get_addons(self):
         raise NotImplementedError("This should be unreachable")
 
+    # noinspection PyProtectedMember
     async def create_backup(
-        self, data: Dict, partial: bool = False, timeout: Optional[int] = None
-    ):
-        return (await self._manager.generate_backup()).as_dict()
+        self, config: Dict, partial: bool = False, timeout: Optional[int] = None
+    ) -> Dict:
+        if not config.get(PATCH_NAME):
+            backup = await self._manager.generate_backup()
+        else:
+            _LOGGER.debug("Support name is set: %s", config)
+            if not hasattr(self._manager, "_generate_backup_contents"):
+                raise HomeAssistantError(
+                    "Unable to patch '_generate_backup_contents' function."
+                )
+
+            def wrapper(*args, **kwargs):
+                if len(args) != 2 or kwargs or not isinstance(args[1], dict):
+                    raise HomeAssistantError(
+                        "Wrapper of '_generate_backup_contents' called with wrong arguments"
+                    )
+
+                args[1]["name"] = config[ATTR_NAME]
+                old_function(*args, **kwargs)
+
+            old_function = self._manager._generate_backup_contents
+
+            try:
+                self._manager._generate_backup_contents = wrapper
+                backup = await self._manager.generate_backup()
+                backup.name = config[ATTR_NAME]
+            finally:
+                self._manager._generate_backup_contents = old_function
+
+        return backup.as_dict()
 
     async def remove_backup(self, slug):
         await self._manager.remove_backup(slug)

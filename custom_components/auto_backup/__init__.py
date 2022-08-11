@@ -39,6 +39,7 @@ from .const import (
     CONF_AUTO_PURGE,
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
+    PATCH_NAME,
 )
 from .handlers import SupervisorHandler, HassioAPIError, BackupHandler, HandlerBase
 
@@ -291,7 +292,7 @@ class AutoBackup:
     def validate_backup_config(self, config: Dict):
         """Validate the backup config."""
         if not self._supervised:
-            disallowed_options = [ATTR_NAME, ATTR_PASSWORD]
+            disallowed_options = [ATTR_PASSWORD]
             for option in disallowed_options:
                 if config.get(option):
                     raise HomeAssistantError(
@@ -311,6 +312,9 @@ class AutoBackup:
                 raise HomeAssistantError(
                     f"Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
                 )
+
+            if config.get(ATTR_NAME):
+                config[PATCH_NAME] = True
 
         if not config.get(ATTR_NAME):
             config[ATTR_NAME] = self.generate_backup_name()
