@@ -1,11 +1,12 @@
 name: Report an issue with the Auto Backup integration
 description: Report an issue with the Auto Backup integration.
-labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        This issue form is for reporting bugs.
+        This issue form is for reporting bugs, you should search through
+        the existing issues to see if others have had the same problem.
+
         Try fill as many fields as you can, to make it easier to address the issue.
   - type: textarea
     attributes:
@@ -30,8 +31,7 @@ body:
   - type: input
     id: ha_version
     attributes:
-      label: What version of Home Assistant Core are you running?
-      placeholder: core-
+      label: What version of Home Assistant are you running?
       description: >
         Can be found in: [Settings -> About](https://my.home-assistant.io/redirect/info/).
 
@@ -57,12 +57,21 @@ body:
       label: Example YAML snippet
       description: |
         If applicable, please provide an example piece of YAML that can help reproduce this problem.
-        This can be from an automation, script, scene or configuration.
+        This can be from an automation, script, service or configuration.
       render: yml
   - type: textarea
     attributes:
       label: Anything in the logs that might be useful for us?
-      description: For example, error message, or stack traces.
+      description: |
+        For example, error message, or stack traces.
+
+        If you would like to enable debug logs add the [logger](https://www.home-assistant.io/components/logger/) integration, then use the following service call.
+
+        ```yaml
+        service: logger.set_level
+        data:
+          custom_components.auto_backup: debug
+        ```
       render: python3
   - type: textarea
     attributes:
