@@ -8,16 +8,16 @@ Create a full or partial backup.
 
 This is the primary method and includes the functionality of the `backup_full` and `backup_partial` services.
 
-| Parameter                                    | Description                                               | Type     | Example                                                     |
-| -------------------------------------------- | --------------------------------------------------------- | -------- | ----------------------------------------------------------- |
-| `name`                                       | Optional name, defaults to the current date and time.     | `string` | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
-| [`include_addons`](#addon-and-folder-names)  | List of addons to include in the backup (name or slug).   | `list`   | `#!json ["Almond", "glances", "core_mariadb"]`              |
-| [`include_folders`](#addon-and-folder-names) | List of folders to include in the backup.                 | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
-| [`exclude_addons`](#addon-and-folder-names)  | List of addons to exclude from the backup (name or slug). | `list`   | `#!json ["Almond", "glances", "core_mariadb"]`              |
-| [`exclude_folders`](#addon-and-folder-names) | List of folders to exclude from the backup.               | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
-| `password`                                   | Optional password to secure backup.                       | `string` | `#!json 1234`                                               |
-| [`keep_days`](#keep-days)                    | The number of days to keep the backup.                    | `float`  | `#!json 2`                                                  |
-| [`download_path`](#download-path)            | Locations to download the backup to after creation.       | `list`   | `#!json ["/usb_drive"]`                                     |
+| Parameter                                    | Description                                                                               | Type     | Example                                                     |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------- |
+| `name`                                       | Optional name, defaults to the current date and time.                                     | `string` | `#!jinja Automatic Backup {{ now().strftime('%Y-%m-%d') }}` |
+| [`include_addons`](#addon-and-folder-names)  | List of addons to include in the backup (name or slug). Wildcards supported for slugs.    | `list`   | `#!json ["Almond", "glances", "core_mariadb", "core_*"]`    |
+| [`include_folders`](#addon-and-folder-names) | List of folders to include in the backup.                                                 | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
+| [`exclude_addons`](#addon-and-folder-names)  | List of addons to exclude from the backup (name or slug).  Wildcards supported for slugs. | `list`   | `#!json ["Almond", "glances", "core_mariadb", "core_*"]`    |
+| [`exclude_folders`](#addon-and-folder-names) | List of folders to exclude from the backup.                                               | `list`   | `#!json ["Local add-ons", "homeassistant", "share"]`        |
+| `password`                                   | Optional password to secure backup.                                                       | `string` | `#!json 1234`                                               |
+| [`keep_days`](#keep-days)                    | The number of days to keep the backup.                                                    | `float`  | `#!json 2`                                                  |
+| [`download_path`](#download-path)            | Locations to download the backup to after creation.                                       | `list`   | `#!json ["/usb_drive"]`                                     |
 
 ??? example "Create a full backup"
 
@@ -66,7 +66,7 @@ This is the primary method and includes the functionality of the `backup_full` a
 
 ### Addon and folder names
 
-**Addon names** are case-insensitive and can be the addon name/title, these are the same names seen when creating a partial backup through the Supervisor backups page. They can also be the addons slug (slug must be lowercase).
+**Addon names** are case-insensitive and can be the addon name/title, these are the same names seen when creating a partial backup through the Supervisor backups page. They can also be the addons slug (slug must be lowercase). You can also use wildcards for matching slugs, such as `core_*` to include all core addons.
 
 **Folder names** are also case-insensitive and use the names seen when creating a partial backup through the Supervisor backups page.
 Currently, accepted values are (ignoring case):
