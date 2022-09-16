@@ -1,4 +1,4 @@
-name: Report an issue with the Auto Backup integration
+name: Report an issue
 description: Report an issue with the Auto Backup integration.
 body:
   - type: markdown
@@ -32,6 +32,7 @@ body:
     id: ha_version
     attributes:
       label: What version of Home Assistant are you running?
+      placeholder: Home Assistant YYYY.MM.XX
       description: >
         Can be found in: [Settings -> About](https://my.home-assistant.io/redirect/info/).
 
@@ -48,6 +49,15 @@ body:
         - Home Assistant Container
         - Home Assistant Supervised
         - Home Assistant Core
+  - type: input
+    id: supervisor_version
+    attributes:
+      label: If you're running HA OS/Supervised, what version of the Supervisor are you running?
+      placeholder: Supervisor YYYY.MM.XX
+      description: >
+        Can be found in: [Settings -> About](https://my.home-assistant.io/redirect/info/).
+
+        [![Open your Home Assistant instance and show your Home Assistant version information.](https://my.home-assistant.io/badges/info.svg)](https://my.home-assistant.io/redirect/info/)
   - type: markdown
     attributes:
       value: |
