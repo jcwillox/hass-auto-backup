@@ -1,0 +1,25 @@
+{
+    "title": "Auto Backup",
+    "config": {
+        "step": {
+            "user": {
+                "title": "\uD83D\uDDC3️ Auto Backup",
+                "description": "Service de sauvegarde amélioré pour Home Assistant qui peut supprimer automatiquement les sauvegardes"
+            }
+        },
+        "abort": {
+            "single_instance": "Une seule configuration de la sauvegarde automatique est autorisée.",
+            "missing_service": "Vous devez utiliser Home Assistant Supervised ou avoir activé l'intégration de la 'sauvegarde'."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "auto_purge": "Suppression automatique des sauvegardes expirées.",
+                    "backup_timeout": "Délai d'attente pour la sauvegarde (minutes)"
+                }
+            }
+        }
+    }
+}
