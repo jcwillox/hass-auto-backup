@@ -1,0 +1,25 @@
+{
+    "title": "Auto Backup",
+    "config": {
+        "step": {
+            "user": {
+                "title": "\uD83D\uDDC3️ Auto Backup",
+                "description": "Verbesserter Sicherungsdienst für Home Assistant, der Sicherungen automatisch entfernen kann"
+            }
+        },
+        "abort": {
+            "single_instance": "Es ist nur eine einzige Konfiguration der automatischen Sicherung zulässig.",
+            "missing_service": "Sie müssen Home Assistant Supervised ausführen oder die 'Backup'-Integration aktiviert haben"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "auto_purge": "Abgelaufene Sicherungen automatisch löschen",
+                    "backup_timeout": "Sicherung Zeitablauf (Minuten)"
+                }
+            }
+        }
+    }
+}
