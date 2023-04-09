@@ -182,28 +182,41 @@ class BackupHandler(HandlerBase):
             backup = await self._manager.generate_backup()
         else:
             _LOGGER.debug("Support name is set: %s", config)
-            if not hasattr(self._manager, "_generate_backup_contents"):
+            if not hasattr(self._manager, "_mkdir_and_generate_backup_contents"):
+                if not hasattr(self._manager, "_generate_backup_contents"):
+                    raise HomeAssistantError(
+                        "Unable to patch '_generate_backup_contents' function."
+                    )
                 raise HomeAssistantError(
-                    "Unable to patch '_generate_backup_contents' function."
+                    "Unable to patch '_mkdir_and_generate_backup_contents' function."
                 )
 
             def wrapper(*args, **kwargs):
                 if len(args) != 2 or kwargs or not isinstance(args[1], dict):
                     raise HomeAssistantError(
-                        "Wrapper of '_generate_backup_contents' called with wrong arguments"
+                        "Wrapper of '_mkdir_and_generate_backup_contents' called with wrong arguments"
                     )
 
                 args[1]["name"] = config[ATTR_NAME]
-                old_function(*args, **kwargs)
+                return old_function(*args, **kwargs)
 
-            old_function = self._manager._generate_backup_contents
+            if hasattr(self._manager, "_generate_backup_contents"):
+                old_function = self._manager._generate_backup_contents
+            else:
+                old_function = self._manager._mkdir_and_generate_backup_contents
 
             try:
-                self._manager._generate_backup_contents = wrapper
+                if hasattr(self._manager, "_generate_backup_contents"):
+                    self._manager._generate_backup_contents = wrapper
+                else:
+                    self._manager._mkdir_and_generate_backup_contents = wrapper
                 backup = await self._manager.generate_backup()
                 backup.name = config[ATTR_NAME]
             finally:
-                self._manager._generate_backup_contents = old_function
+                if hasattr(self._manager, "_generate_backup_contents"):
+                    self._manager._generate_backup_contents = old_function
+                else:
+                    self._manager._mkdir_and_generate_backup_contents = old_function
 
         return backup.as_dict()
 
