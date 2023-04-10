@@ -7,12 +7,12 @@
                 "description": "Melhoria do sistema de backups do Home Assistant agora podes remover automaticamente os backups "
             }
         },
-        "abortar": {
+        "abort": {
             "single_instance": "Apenas uma intancia do Auto Backup é permitida.",
             "missing_service": "Tens que correr o  Home Assistant Supervised o ter a integração 'backup' activada"
         }
     },
-    "opcções": {
+    "options": {
         "step": {
             "init": {
                 "data": {
