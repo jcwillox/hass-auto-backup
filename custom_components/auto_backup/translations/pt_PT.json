@@ -1,0 +1,25 @@
+{
+    "title": "Auto Backup",
+    "config": {
+        "step": {
+            "user": {
+                "title": "\uD83D\uDDC3️ Auto Backup",
+                "description": "Melhoria do sistema de backups do Home Assistant agora podes remover automaticamente os backups "
+            }
+        },
+        "abort": {
+            "single_instance": "Apenas uma intancia do Auto Backup é permitida.",
+            "missing_service": "Tens que correr o  Home Assistant Supervised o ter a integração 'backup' activada"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "auto_purge": "Remover automaticamente os downloads expirados",
+                    "backup_timeout": "Backups timeout (minutos)"
+                }
+            }
+        }
+    }
+}
