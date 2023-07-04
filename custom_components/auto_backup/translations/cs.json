@@ -1,0 +1,25 @@
+{
+    "title": "Auto Backup",
+    "config": {
+        "step": {
+            "user": {
+                "title": "\uD83D\uDDC3️ Auto Backup",
+                "description": "Vylepšená služba pro zálohování Home Assistant instance, která umožňuje automaticky mazat zálohy"
+            }
+        },
+        "abort": {
+            "single_instance": "Je povoleno pouze jedno nastavení integrace Auto Backup.",
+            "missing_service": "Musíte využívat Home Assistant v privilegovaném (supervised) módu nebo mít zapnutou integraci pro zálohování (\"backup\")"
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "auto_purge": "Automaticky odstraňovat zálohy, jejichž platnost vypršela",
+                    "backup_timeout": "Časový limit pro zálohování (v minutách)"
+                }
+            }
+        }
+    }
+}
