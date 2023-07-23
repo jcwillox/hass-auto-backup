@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "editorconfig.editorconfig",
+    "christian-kohler.path-intellisense",
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter",
+    "keesschollaart.vscode-home-assistant",
+    "tamasfe.even-better-toml"
+  ]
+}

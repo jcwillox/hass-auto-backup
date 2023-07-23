@@ -1,8 +1,20 @@
 {
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.pythonPath": "/usr/local/bin/python",
-    "files.associations": {
-        "*.yaml": "home-assistant"
-    }
+  "editor.formatOnSave": true,
+  "editor.linkedEditing": true,
+  "editor.renderWhitespace": "trailing",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "files.associations": {
+    "**/.github/workflows/*.yaml": "github-actions-workflow",
+    "**/.devcontainer/*.yaml": "home-assistant"
+  },
+  "[javascript][javascriptreact][typescript][typescriptreact][json][jsonc][yaml][html][markdown][postcss][css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "python.formatting.provider": "none",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "yaml.customTags": ["!env"]
 }
