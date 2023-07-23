@@ -1,4 +1,4 @@
-name: "Publish"
+name: "Release"
 
 on:
   release:
@@ -14,12 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout the repository"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: "Update version"
         run: |
-          current="$(jq --raw-output .version manifest.json | sed 's/\./\\./g')"
-          sed -i s/$current/${{ github.event.release.tag_name }}/ manifest.json
+          yq -i '.version = strenv(GITHUB_REF_NAME)' manifest.json
 
       - name: "Zip component"
         run: |
@@ -29,4 +28,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} auto_backup.zip
+          gh release upload $GITHUB_REF_NAME auto_backup.zip
