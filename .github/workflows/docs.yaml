@@ -13,21 +13,27 @@ jobs:
     name: "Deploy Docs"
     runs-on: ubuntu-latest
     concurrency: deploy-docs-${{ github.ref }}
-    env:
-      SITE_DESCRIPTION: ${{ github.event.repository.description }}
     steps:
       - name: "Checkout the repository"
         uses: actions/checkout@v3
 
+      - name: "Install poetry"
+        run: pipx install poetry
+
+      - name: "Get python version"
+        id: python
+        run: echo "version=$(yq .tool.poetry.dependencies.python pyproject.toml)" >> "$GITHUB_OUTPUT"
+
       - name: "Setup Python"
         uses: actions/setup-python@v3
         with:
-          python-version: 3.x
-          cache: ${{ !env.ACT && 'pip' || '' }}
-          cache-dependency-path: docs/requirements.txt
+          python-version: ${{ steps.python.outputs.version }}
+          cache: "poetry"
 
       - name: "Install dependencies"
-        run: pip install -r docs/requirements.txt
+        run: poetry install --only docs
 
       - name: "Build & Deploy 🚀"
-        run: mkdocs gh-deploy --force
+        run: poetry run mkdocs gh-deploy --force
+        env:
+          SITE_DESCRIPTION: ${{ github.event.repository.description }}

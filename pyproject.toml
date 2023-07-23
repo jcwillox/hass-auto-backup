@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "hass-auto-backup"
+version = "0.0.0"
+description = ""
+authors = []
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "auto_backup", from = "custom_components" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+homeassistant = "^2023.7.3"
+colorlog = "^6.7.0"
+securetar = "^2023.3.0"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.1.18"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
