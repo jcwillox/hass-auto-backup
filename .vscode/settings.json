@@ -16,5 +16,9 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "yaml.customTags": ["!env"]
+  "yaml.customTags": [
+    "!ENV",
+    "tag:yaml.org,2002:python/name:materialx.emoji.twemoji",
+    "tag:yaml.org,2002:python/name:materialx.emoji.to_svg"
+  ]
 }

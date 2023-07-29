@@ -5,18 +5,19 @@ Auto Backup is an Improved Backup Service for Home Assistant that can Automatica
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jcwillox&repository=hass-auto-backup&category=integration)
 
 !!! important ""
+
     While Home Assistant does provide built-in services for creating backups, they do not provide the ability to exclude items from a backup, or a way to automatically remove them, this custom component aims to fix that.
 
 ## Features
 
-* [x] Provides more advanced and configurable [service calls](services.md).
-* [x] [Exclude addons/folders](services.md) from a backup.
-* [x] [Automatically delete backups](services.md#keep-days) after an individually specified amount of time.
-* [x] [Download backups](services.md#download-path) to a specified directory after completion (for example a usb drive).
-* [x] Allows the use of [addon names instead of slugs](services.md#addon-and-folder-names).
-* [x] Provides a [sensor](sensors.md) to monitor the status of your backups.
-* [x] Creates [events](events.md) for when backups are started/created/failed/deleted.
-* [x] Supports [generational backup](advanced-examples.md#generational-backups) schemes.
+- [x] Provides more advanced and configurable [service calls](services.md).
+- [x] [Exclude addons/folders](services.md) from a backup.
+- [x] [Automatically delete backups](services.md#keep-days) after an individually specified amount of time.
+- [x] Backup to [custom locations](services.md#custom-locations) such as network storage.
+- [x] Allows the use of [addon names instead of slugs](services.md#addon-and-folder-names).
+- [x] Provides a [sensor](sensors.md) to monitor the status of your backups.
+- [x] Creates [events](events.md) for when backups are started/created/failed/deleted.
+- [x] Supports [generational backup](advanced-examples.md#generational-backups) schemes.
 
 ## Configuration
 
