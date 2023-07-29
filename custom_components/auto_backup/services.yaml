@@ -78,16 +78,6 @@ backup:
           step: 0.01
           unit_of_measurement: days
           mode: box
-    download_path: &download_path
-      name: Download path
-      description: Locations to download the backup to after creation.
-      example: "[/usb_drive]"
-      advanced: true
-      selector:
-        select:
-          multiple: true
-          custom_value: true
-          options: []
     location: &location
       name: Location
       description: Name of a backup network storage to put backup (or /backup)
@@ -115,7 +105,6 @@ backup_full:
         object:
     password: *password
     keep_days: *keep_days
-    download_path: *download_path
     location: *location
     compressed: *compressed
 
@@ -152,7 +141,6 @@ backup_partial:
               value: addons
     password: *password
     keep_days: *keep_days
-    download_path: *download_path
     location: *location
     compressed: *compressed
 
