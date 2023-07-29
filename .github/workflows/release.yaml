@@ -1,8 +1,25 @@
 name: "Release"
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - "beta"
+      - "alpha"
+  workflow_dispatch:
+    inputs:
+      draft:
+        type: boolean
+        description: "Draft release"
+        default: false
+      release_type:
+        type: choice
+        description: "Release type"
+        default: "auto"
+        options:
+          - "auto"
+          - "patch"
+          - "minor"
+          - "major"
 
 defaults:
   run:
@@ -12,20 +29,21 @@ jobs:
   publish:
     name: "Publish"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: "Checkout the repository"
         uses: actions/checkout@v3
 
-      - name: "Update version"
-        run: |
-          yq -i '.version = strenv(GITHUB_REF_NAME)' manifest.json
-
-      - name: "Zip component"
-        run: |
-          zip auto_backup.zip -r ./
-
-      - name: "Upload assets"
+      - name: "Release Package 📦"
+        run: corepack enable && pnpm dlx @jcwillox/semantic-release-config
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload $GITHUB_REF_NAME auto_backup.zip
+          SEMANTIC_RELEASE_GITHUB_DRAFT: ${{ inputs.draft }}
+          SEMANTIC_RELEASE_FORCE_RELEASE: ${{ inputs.release_type }}
+          SEMANTIC_RELEASE_CMD_PREPARE: |
+            yq -i '.version = "${nextRelease.version}"' manifest.json
+            zip auto_backup.zip -r ./
+          SEMANTIC_RELEASE_GITHUB_ASSETS: "auto_backup.zip"
