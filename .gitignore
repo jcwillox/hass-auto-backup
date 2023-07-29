@@ -154,3 +154,5 @@ cython_debug/
 
 # PyCharm
 .idea/
+.devcontainer/config/*
+!.devcontainer/config/configuration.yaml
