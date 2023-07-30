@@ -84,6 +84,16 @@ backup:
       example: my_backup_mount
       selector:
         backup_location:
+    download_path: &download_path
+      name: Download path
+      description: Locations to download the backup to after creation.
+      example: "[/usb_drive]"
+      advanced: true
+      selector:
+        select:
+          multiple: true
+          custom_value: true
+          options: [ ]
     compressed: &compressed
       name: Compressed
       description: Use compressed archives
@@ -106,6 +116,7 @@ backup_full:
     password: *password
     keep_days: *keep_days
     location: *location
+    download_path: *download_path
     compressed: *compressed
 
 backup_partial:
@@ -142,6 +153,7 @@ backup_partial:
     password: *password
     keep_days: *keep_days
     location: *location
+    download_path: *download_path
     compressed: *compressed
 
 purge:

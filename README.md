@@ -20,6 +20,7 @@ For more information and examples check the [documentation](https://jcwillox.git
 - [Exclude addons/folders](https://jcwillox.github.io/hass-auto-backup/services) from a backup.
 - [Automatically delete backups](https://jcwillox.github.io/hass-auto-backup/services/#keep-days) after an individually specified amount of time.
 - Backup to [custom locations](https://jcwillox.github.io/hass-auto-backup/services/#custom-locations) such as network storage.
+- [Download backups](https://jcwillox.github.io/hass-auto-backup/services/#download-path) to a specified directory after completion (for example a usb drive).
 - Allows the use of [addon names instead of slugs](https://jcwillox.github.io/hass-auto-backup/services/#addon-and-folder-names).
 - Provides a [sensor](https://jcwillox.github.io/hass-auto-backup/sensors) to monitor the status of your backups.
 - Creates [events](https://jcwillox.github.io/hass-auto-backup/events) for when backups are started/created/failed/deleted.
