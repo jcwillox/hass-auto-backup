@@ -71,6 +71,7 @@ Of course, you can tweak these values to your liking, or even add a month/yearly
     service: auto_backup.backup_full
     data:
       name: "DailyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
+      compressed: true
       keep_days: 7
 ```
 
@@ -87,7 +88,29 @@ Of course, you can tweak these values to your liking, or even add a month/yearly
     service: auto_backup.backup_full
     data:
       name: "WeeklyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
+      compressed: true
       # store backup for a month
       # i.e. backup each week and store for 4 weeks
       keep_days: 28
+```
+
+```yaml title="Full backup on the 1st of every month"
+alias: "AutoBackup: Monthly Backup"
+trigger:
+  # Choose a different time then your other automations
+  # to ensure that two are not running at once
+  - platform: time
+    at: "01:00:00"
+condition:
+  - condition: template
+    value_template: "{{ now().day == 1 }}"
+action:
+  - service: auto_backup.backup_full
+    metadata: {}
+    data:
+      name: "MonthlyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
+      compressed: true
+      # store backup for a year
+      # i.e. backup on the 1st, store for 12 months
+      keep_days: 365
 ```
