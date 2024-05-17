@@ -1,4 +1,5 @@
 """Component to create and automatically remove Home Assistant backups."""
+
 import logging
 from datetime import datetime, timedelta, timezone
 from fnmatch import fnmatchcase
