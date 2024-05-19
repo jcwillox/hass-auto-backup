@@ -1,4 +1,5 @@
 """Component to create and automatically remove Home Assistant backups."""
+
 import logging
 from datetime import datetime, timedelta, timezone
 from fnmatch import fnmatchcase
@@ -17,12 +18,11 @@ from homeassistant.components.hassio import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME, __version__
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.typing import HomeAssistantType, ServiceCallType
 from homeassistant.loader import bind_hass
 from homeassistant.util import dt as dt_util
 from slugify import slugify
@@ -167,7 +167,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     await auto_backup.load_snapshots_expiry()
 
     ### REGISTER SERVICES ###
-    async def async_service_handler(call: ServiceCallType):
+    async def async_service_handler(call: ServiceCall):
         """Handle Auto Backup service calls."""
         if call.service == SERVICE_PURGE:
             await auto_backup.purge_backups()
@@ -208,7 +208,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 
 class AutoBackup:
-    def __init__(self, hass: HomeAssistantType, options: Dict, handler: HandlerBase):
+    def __init__(self, hass: HomeAssistant, options: Dict, handler: HandlerBase):
         self._hass = hass
         self._handler = handler
         self._auto_purge = options[CONF_AUTO_PURGE]
