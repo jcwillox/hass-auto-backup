@@ -20,14 +20,10 @@ jobs:
       - name: "Install poetry"
         run: pipx install poetry
 
-      - name: "Get python version"
-        id: python
-        run: echo "version=$(yq .tool.poetry.dependencies.python pyproject.toml)" >> "$GITHUB_OUTPUT"
-
       - name: "Setup Python"
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ steps.python.outputs.version }}
+          python-version-file: "pyproject.toml"
           cache: "poetry"
 
       - name: "Install dependencies"
