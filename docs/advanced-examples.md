@@ -71,7 +71,6 @@ Of course, you can tweak these values to your liking, or even add a month/yearly
     service: auto_backup.backup_full
     data:
       name: "DailyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
-      compressed: true
       keep_days: 7
 ```
 
@@ -88,7 +87,6 @@ Of course, you can tweak these values to your liking, or even add a month/yearly
     service: auto_backup.backup_full
     data:
       name: "WeeklyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
-      compressed: true
       # store backup for a month
       # i.e. backup each week and store for 4 weeks
       keep_days: 28
@@ -109,7 +107,6 @@ action:
     metadata: {}
     data:
       name: "MonthlyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
-      compressed: true
       # store backup for a year
       # i.e. backup on the 1st, store for 12 months
       keep_days: 365
@@ -130,7 +127,6 @@ action:
     metadata: {}
     data:
       name: "MonthlyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
-      compressed: true
       # store backup for a year
       # i.e. backup on the 1st, store for 12 months
       keep_days: 365
@@ -160,7 +156,6 @@ action:
         sequence:
           - service: auto_backup.backup
             data:
-              compressed: true
               keep_days: 28
               name: "WeeklyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
       - conditions:
