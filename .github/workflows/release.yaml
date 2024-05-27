@@ -37,6 +37,11 @@ jobs:
       - name: "Checkout the repository"
         uses: actions/checkout@v4
 
+      - name: "Setup node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
       - name: "Release Package 📦"
         run: corepack enable && pnpm dlx @jcwillox/semantic-release-config
         env:
