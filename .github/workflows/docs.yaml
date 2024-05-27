@@ -15,7 +15,7 @@ jobs:
     concurrency: deploy-docs-${{ github.ref }}
     steps:
       - name: "Checkout the repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Install poetry"
         run: pipx install poetry
