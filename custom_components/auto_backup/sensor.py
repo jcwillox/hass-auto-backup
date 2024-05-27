@@ -1,11 +1,10 @@
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import HomeAssistantType, EventType
 
 from . import AutoBackup
 from .const import (
@@ -23,7 +22,7 @@ ATTR_MONITORED = "monitored_backups"
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up Auto Backup sensors based on a config entry."""
     auto_backup = hass.data[DOMAIN][DATA_AUTO_BACKUP]
@@ -61,7 +60,7 @@ class AutoBackupSensor(SensorEntity):
             self.async_schedule_update_ha_state(True)
 
         @callback
-        def backup_failed(event_: EventType):
+        def backup_failed(event_: Event):
             """Store last failed and update sensor"""
             self._attr_extra_state_attributes[ATTR_LAST_FAILURE] = event_.data.get(
                 ATTR_NAME

@@ -1,4 +1,5 @@
 """Config flow for Auto Backup integration."""
+
 import logging
 
 import voluptuous as vol
