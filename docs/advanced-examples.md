@@ -112,26 +112,6 @@ action:
       keep_days: 365
 ```
 
-```yaml title="Full backup on the 1st of every month"
-alias: "AutoBackup: Monthly Backup"
-trigger:
-  # Choose a different time then your other automations
-  # to ensure that two are not running at once
-  - platform: time
-    at: "01:00:00"
-condition:
-  - condition: template
-    value_template: "{{ now().day == 1 }}"
-action:
-  - service: auto_backup.backup_full
-    metadata: {}
-    data:
-      name: "MonthlyBackup: {{ now().strftime('%A, %B %-d, %Y') }}"
-      # store backup for a year
-      # i.e. backup on the 1st, store for 12 months
-      keep_days: 365
-```
-
 ```yaml title="Unified auto backup that does Daily, Weekly and Monthly in a single automation (version 2024.1 or newer required)"
 alias: AutoBackup
 description: Unified Auto Backups
