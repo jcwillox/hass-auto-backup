@@ -179,7 +179,10 @@ class BackupHandler(HandlerBase):
         self, config: Dict, partial: bool = False, timeout: Optional[int] = None
     ) -> Dict:
         if not config.get(PATCH_NAME):
-            backup = await self._manager.generate_backup()
+            if hasattr(self._manager, "async_create_backup"):
+                backup = await self._manager.async_create_backup()
+            else:
+                backup = await self._manager.generate_backup()
         else:
             _LOGGER.debug("Support name is set: %s", config)
             if not hasattr(self._manager, "_mkdir_and_generate_backup_contents"):
@@ -210,7 +213,10 @@ class BackupHandler(HandlerBase):
                     self._manager._generate_backup_contents = wrapper
                 else:
                     self._manager._mkdir_and_generate_backup_contents = wrapper
-                backup = await self._manager.generate_backup()
+                if hasattr(self._manager, "async_create_backup"):
+                    backup = await self._manager.async_create_backup()
+                else:
+                    backup = await self._manager.generate_backup()
                 backup.name = config[ATTR_NAME]
             finally:
                 if hasattr(self._manager, "_generate_backup_contents"):
@@ -221,12 +227,18 @@ class BackupHandler(HandlerBase):
         return backup.as_dict()
 
     async def remove_backup(self, slug):
-        await self._manager.remove_backup(slug)
+        if hasattr(self._manager, "async_remove_backup"):
+            await self._manager.async_remove_backup(slug=slug)
+        else:
+            await self._manager.remove_backup(slug)
 
     async def download_backup(
         self, slug: str, destination: str, timeout: int = DEFAULT_BACKUP_TIMEOUT_SECONDS
     ):
-        backup = await self._manager.get_backup(slug)
+        if hasattr(self._manager, "async_get_backup"):
+            backup = await self._manager.async_get_backup(slug=slug)
+        else:
+            backup = await self._manager.get_backup(slug)
         if backup:
             shutil.copyfile(backup.path, destination)
         else:
