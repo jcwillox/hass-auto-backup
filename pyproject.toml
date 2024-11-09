@@ -9,7 +9,7 @@ packages = [{ include = "auto_backup", from = "custom_components" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-homeassistant = "^2023.7.3"
+homeassistant = "^2024.0.0"
 colorlog = "^6.7.0"
 securetar = "^2023.3.0"
 
