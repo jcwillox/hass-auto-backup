@@ -36,14 +36,14 @@ backup:
               value: addons
     exclude_addons:
       name: "Exclude: Add-ons"
-      description: List of addons to backup (name or slug).
+      description: List of addons to exclude from backup (name or slug).
       example: "[grafana, Configurator, core_mariadb]"
       default: [grafana, Configurator, core_mariadb]
       selector:
         object:
     exclude_folders:
       name: "Exclude: Folders"
-      description: List of folders to backup.
+      description: List of folders to exclude from backup.
       example: "[homeassistant, Share, Local add-ons, ssl, media]"
       selector:
         select:
