@@ -11,7 +11,7 @@ packages = [{ include = "auto_backup", from = "custom_components" }]
 python = "^3.11"
 homeassistant = "^2023.7.3"
 colorlog = "^6.7.0"
-securetar = "^2023.3.0"
+securetar = "^2024.0.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.1.18"

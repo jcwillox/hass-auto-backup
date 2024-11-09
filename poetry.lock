@@ -1609,13 +1609,13 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "securetar"
-version = "2023.12.0"
+version = "2024.2.1"
 description = "Python module to handle tarfile backups."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "securetar-2023.12.0-py3-none-any.whl", hash = "sha256:9429f663d4a366be01b3727ee68e60d51547d908c04bc8b18c1a1a56892719fc"},
-    {file = "securetar-2023.12.0.tar.gz", hash = "sha256:ff400fded51af01ad9f7a24165897d630a145a65bcf3b74d4079ed79407d1f89"},
+    {file = "securetar-2024.2.1-py3-none-any.whl", hash = "sha256:fc7e5b8f44080f45945f5e12ff7e10e5c957c00283c947c9fbcb27d00a8955fc"},
+    {file = "securetar-2024.2.1.tar.gz", hash = "sha256:0475d5d515b52195e1c4095629834dbcf7038be39dea5b734faa59e4286ed068"},
 ]
 
 [package.dependencies]
@@ -1924,4 +1924,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f9d812b338dc45fa4ad62f0565d09cf5cd742b2cb35cb3729d63954fa3e3f884"
+content-hash = "3f69a635052ec33c3f5003dcc33795aa7bd24de524b6e523f786fc32eef0b41e"
