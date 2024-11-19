@@ -3,7 +3,7 @@
   "editor.linkedEditing": true,
   "editor.renderWhitespace": "trailing",
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
   "files.associations": {
     "**/.github/workflows/*.yaml": "github-actions-workflow",

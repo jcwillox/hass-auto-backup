@@ -4,7 +4,7 @@
     {
       "label": "Run Home Assistant on port 8123",
       "type": "shell",
-      "command": "poetry run .devcontainer/hass.sh",
+      "command": "uv run .devcontainer/hass.sh",
       "problemMatcher": []
     }
   ]

@@ -19,19 +19,20 @@ jobs:
       - name: "Checkout the repository"
         uses: actions/checkout@v4
 
-      - name: "Install poetry"
-        run: pipx install poetry
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: "Setup Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: "pyproject.toml"
-          cache: "poetry"
+          python-version-file: ".python-version"
 
       - name: "Install dependencies"
-        run: poetry install --only docs
+        run: uv sync --only-group docs
 
       - name: "Build & Deploy 🚀"
-        run: poetry run mkdocs gh-deploy --force
+        run: uv run mkdocs gh-deploy --force
         env:
           SITE_DESCRIPTION: ${{ github.event.repository.description }}
