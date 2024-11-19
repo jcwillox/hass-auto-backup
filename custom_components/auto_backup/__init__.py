@@ -33,9 +33,7 @@ from .const import (
     EVENT_BACKUPS_PURGED,
     EVENT_BACKUP_SUCCESSFUL,
     EVENT_BACKUP_START,
-    UNSUB_LISTENER,
     DATA_AUTO_BACKUP,
-    DEFAULT_BACKUP_TIMEOUT_SECONDS,
     CONF_AUTO_PURGE,
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
@@ -316,7 +314,7 @@ class AutoBackup:
 
             if ATTR_INCLUDE in config or ATTR_EXCLUDE in config:
                 raise HomeAssistantError(
-                    f"Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
+                    "Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
                 )
 
             if config.get(ATTR_NAME):

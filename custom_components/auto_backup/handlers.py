@@ -6,7 +6,6 @@ from os import getenv
 from typing import Dict, List, Optional
 
 import aiohttp
-import async_timeout
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup import BackupManager
 from homeassistant.const import ATTR_NAME
@@ -79,7 +78,7 @@ class SupervisorHandler(HandlerBase):
         This method is a coroutine.
         """
         try:
-            with async_timeout.timeout(timeout):
+            async with asyncio.timeout(timeout):
                 request = await self._session.request(
                     method,
                     f"http://{self._ip}{command}",
@@ -95,7 +94,7 @@ class SupervisorHandler(HandlerBase):
                 answer = await request.json()
                 return answer
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise HassioAPIError("Timeout on %s request" % command)
 
         except aiohttp.ClientError as err:
@@ -131,7 +130,7 @@ class SupervisorHandler(HandlerBase):
         command = f"/backups/{slug}/download"
 
         try:
-            with async_timeout.timeout(timeout):
+            async with asyncio.timeout(timeout):
                 request = await self._session.request(
                     "get",
                     f"http://{self._ip}{command}",
@@ -153,7 +152,7 @@ class SupervisorHandler(HandlerBase):
                 _LOGGER.info("Downloaded backup '%s' to '%s'", slug, destination)
                 return
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error("Timeout on %s request", command)
 
         except aiohttp.ClientError as err:
