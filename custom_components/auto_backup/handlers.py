@@ -1,3 +1,4 @@
+import aiofiles
 import asyncio
 import logging
 import shutil
@@ -141,13 +142,13 @@ class SupervisorHandler(HandlerBase):
                 if request.status not in (200, 400):
                     _LOGGER.error("%s return code %d.", command, request.status)
                     raise HassioAPIError()
-
-                with open(destination, "wb") as file:
+                
+                async with aiofiles.open(destination, "wb") as file:
                     while True:
                         chunk = await request.content.read(CHUNK_SIZE)
                         if not chunk:
                             break
-                        file.write(chunk)
+                        await file.write(chunk)
 
                 _LOGGER.info("Downloaded backup '%s' to '%s'", slug, destination)
                 return
