@@ -45,7 +45,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry):
         """Initialize Auto Backup options flow."""
-        self.config_entry: config_entries.ConfigEntry = config_entry
+        self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Manage the Auto Backup options."""
