@@ -21,6 +21,7 @@ nav:
   - "services.md"
   - "events.md"
   - "sensors.md"
+  - "faq.md"
   - Examples:
       - "examples.md"
       - "advanced-examples.md"

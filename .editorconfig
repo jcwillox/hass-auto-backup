@@ -7,5 +7,5 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-[*.py]
+[{*.py,*.md}]
 indent_size = 4
