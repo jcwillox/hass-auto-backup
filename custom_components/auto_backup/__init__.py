@@ -467,14 +467,16 @@ class AutoBackup:
         _LOGGER.debug("Attempting to remove backup: %s", slug)
         try:
             await self._handler.remove_backup(slug)
+        except HassioAPIError as err:
+            message = "Failed to purge backup: %s, If it was intentionally moved or deleted externally you can ignore this error."
+            if str(err) == "Backup does not exist":
+                _LOGGER.warning(message, err)
+            else:
+                _LOGGER.error(message, err)
+            return False
+        finally:
             # remove snapshot expiry.
             del self._snapshots[slug]
-        except HassioAPIError as err:
-            if str(err) == "Backup does not exist":
-                del self._snapshots[slug]
-            else:
-                _LOGGER.error("Failed to purge backup: %s", err)
-                return False
         return True
 
     def async_download_backup(self, name, slug, backup_path):
