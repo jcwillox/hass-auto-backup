@@ -48,6 +48,13 @@ After installing Auto Backup via [HACS](https://hacs.xyz), it can then be setup 
 | Automatically delete expired backups | This option will automatically purge any expired backups when creating a new backup.                                                                                                                         |
 | Backup Timeout                       | You can increase this value if you get timeout errors when creating a backup. This can happen with very large backups. Increasing this might make Auto Backup less reliable at monitoring backups to delete. |
 
+## Videos
+
+This was created by [mostlychris](https://www.youtube.com/@mostlychris) not me, but it's a good video, so I thought I'd include it here in case it
+helps anyone get started.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/uA6Iwt8sbt0?si=pWsWuA0Vrld5dcI3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ---
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jcwillox)
