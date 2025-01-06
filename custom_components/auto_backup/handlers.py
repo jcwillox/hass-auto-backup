@@ -142,7 +142,7 @@ class SupervisorHandler(HandlerBase):
                 if request.status not in (200, 400):
                     _LOGGER.error("%s return code %d.", command, request.status)
                     raise HassioAPIError()
-                
+
                 async with aiofiles.open(destination, "wb") as file:
                     while True:
                         chunk = await request.content.read(CHUNK_SIZE)
