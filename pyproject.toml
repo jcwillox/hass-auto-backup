@@ -5,6 +5,7 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiofiles>=24.1.0",
     "colorlog>=6.9.0",
     "homeassistant>=2024.11.2",
 ]
