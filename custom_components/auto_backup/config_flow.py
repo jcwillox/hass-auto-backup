@@ -1,7 +1,7 @@
 """Config flow for Auto Backup integration."""
 
 import logging
-
+from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback, HomeAssistant
@@ -39,33 +39,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
+
+
+OPTIONS_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_AUTO_PURGE, default=True): bool,
+        vol.Required(CONF_BACKUP_TIMEOUT, default=DEFAULT_BACKUP_TIMEOUT): int,
+    }
+)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    def __init__(self, config_entry):
-        """Initialize Auto Backup options flow."""
-        self.config_entry: config_entries.ConfigEntry = config_entry
-
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input: dict[str, Any] | None = None):
         """Manage the Auto Backup options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(data=user_input)
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_AUTO_PURGE,
-                        default=self.config_entry.options.get(CONF_AUTO_PURGE, True),
-                    ): bool,
-                    vol.Required(
-                        CONF_BACKUP_TIMEOUT,
-                        default=self.config_entry.options.get(
-                            CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT
-                        ),
-                    ): int,
-                }
+            data_schema=self.add_suggested_values_to_schema(
+                OPTIONS_SCHEMA, self.config_entry.options
             ),
         )

@@ -4,7 +4,7 @@
   "name": "jcwillox/hass-auto-backup",
 
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [8123],
