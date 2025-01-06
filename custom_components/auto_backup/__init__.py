@@ -37,7 +37,6 @@ from .const import (
     CONF_AUTO_PURGE,
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
-    PATCH_NAME,
 )
 from .handlers import SupervisorHandler, HassioAPIError, BackupHandler, HandlerBase
 
@@ -156,7 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if is_hassio(hass):
         handler = SupervisorHandler(getenv("SUPERVISOR"), async_get_clientsession(hass))
     else:
-        handler = BackupHandler(hass.data[DOMAIN_BACKUP])
+        handler = BackupHandler(hass, hass.data[DOMAIN_BACKUP])
 
     auto_backup = AutoBackup(hass, options, handler)
     hass.data.setdefault(DOMAIN, {})[DATA_AUTO_BACKUP] = auto_backup
@@ -296,13 +295,6 @@ class AutoBackup:
     def validate_backup_config(self, config: Dict):
         """Validate the backup config."""
         if not self._supervised:
-            disallowed_options = [ATTR_PASSWORD]
-            for option in disallowed_options:
-                if config.get(option):
-                    raise HomeAssistantError(
-                        f"The '{option}' option is not supported on non-supervised installations."
-                    )
-
             # allow `include` if it only contains the configuration
             if ATTR_INCLUDE in config and not config.get(ATTR_EXCLUDE):
                 # ensure no addons were included
@@ -316,9 +308,6 @@ class AutoBackup:
                 raise HomeAssistantError(
                     "Partial backups (e.g. include/exclude) are not supported on non-supervised installations."
                 )
-
-            if config.get(ATTR_NAME):
-                config[PATCH_NAME] = True
 
         if not config.get(ATTR_NAME):
             config[ATTR_NAME] = self.generate_backup_name()

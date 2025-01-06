@@ -9,10 +9,11 @@ from typing import Dict, List, Optional
 import aiohttp
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup import BackupManager
+from homeassistant.components.hassio import ATTR_PASSWORD
 from homeassistant.const import ATTR_NAME
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.core import HomeAssistant
 
-from .const import DEFAULT_BACKUP_TIMEOUT_SECONDS, PATCH_NAME
+from .const import DEFAULT_BACKUP_TIMEOUT_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -168,7 +169,8 @@ class SupervisorHandler(HandlerBase):
 
 
 class BackupHandler(HandlerBase):
-    def __init__(self, manager: BackupManager):
+    def __init__(self, hass: HomeAssistant, manager: BackupManager):
+        self._hass = hass
         self._manager = manager
 
     async def get_addons(self):
@@ -178,69 +180,40 @@ class BackupHandler(HandlerBase):
     async def create_backup(
         self, config: Dict, partial: bool = False, timeout: Optional[int] = None
     ) -> Dict:
-        if not config.get(PATCH_NAME):
-            if hasattr(self._manager, "async_create_backup"):
-                backup = await self._manager.async_create_backup()
-            else:
-                backup = await self._manager.generate_backup()
-        else:
-            _LOGGER.debug("Support name is set: %s", config)
-            if not hasattr(self._manager, "_mkdir_and_generate_backup_contents"):
-                if not hasattr(self._manager, "_generate_backup_contents"):
-                    raise HomeAssistantError(
-                        "Unable to patch '_generate_backup_contents' function."
-                    )
-                raise HomeAssistantError(
-                    "Unable to patch '_mkdir_and_generate_backup_contents' function."
-                )
+        agent_id = list(self._manager.local_backup_agents)[0]
+        backup = await self._manager.async_create_backup(
+            agent_ids=[agent_id],
+            name=config.get(ATTR_NAME),
+            include_database=True,
+            include_folders=None,
+            include_homeassistant=True,
+            password=config.get(ATTR_PASSWORD),
+            # don't exist on HA Core
+            include_all_addons=False,
+            include_addons=None,
+        )
+        [backup, agent_errors] = await self._manager.async_get_backup(
+            backup.backup_job_id
+        )
 
-            def wrapper(*args, **kwargs):
-                if len(args) != 2 or kwargs or not isinstance(args[1], dict):
-                    raise HomeAssistantError(
-                        "Wrapper of '_mkdir_and_generate_backup_contents' called with wrong arguments"
-                    )
-
-                args[1]["name"] = config[ATTR_NAME]
-                return old_function(*args, **kwargs)
-
-            if hasattr(self._manager, "_generate_backup_contents"):
-                old_function = self._manager._generate_backup_contents
-            else:
-                old_function = self._manager._mkdir_and_generate_backup_contents
-
-            try:
-                if hasattr(self._manager, "_generate_backup_contents"):
-                    self._manager._generate_backup_contents = wrapper
-                else:
-                    self._manager._mkdir_and_generate_backup_contents = wrapper
-                if hasattr(self._manager, "async_create_backup"):
-                    backup = await self._manager.async_create_backup()
-                else:
-                    backup = await self._manager.generate_backup()
-                backup.name = config[ATTR_NAME]
-            finally:
-                if hasattr(self._manager, "_generate_backup_contents"):
-                    self._manager._generate_backup_contents = old_function
-                else:
-                    self._manager._mkdir_and_generate_backup_contents = old_function
-
-        return backup.as_dict()
+        return {"slug": backup.backup_id, **backup.as_dict()}
 
     async def remove_backup(self, slug):
-        if hasattr(self._manager, "async_remove_backup"):
-            await self._manager.async_remove_backup(slug=slug)
-        else:
-            await self._manager.remove_backup(slug)
+        await self._manager.async_delete_backup(slug)
 
     async def download_backup(
         self, slug: str, destination: str, timeout: int = DEFAULT_BACKUP_TIMEOUT_SECONDS
     ):
-        if hasattr(self._manager, "async_get_backup"):
-            backup = await self._manager.async_get_backup(slug=slug)
-        else:
-            backup = await self._manager.get_backup(slug)
+        [backup, agent_errors] = await self._manager.async_get_backup(slug)
         if backup:
-            shutil.copyfile(backup.path, destination)
+            agent_id = list(self._manager.local_backup_agents)[0]
+            agent = self._manager.local_backup_agents[agent_id]
+            backup_path = agent.get_backup_path(backup.backup_id)
+
+            def _copyfile():
+                shutil.copyfile(backup_path, destination)
+
+            await self._hass.async_add_executor_job(_copyfile)
         else:
             _LOGGER.error(
                 "Cannot move backup (%s) to '%s' as it does not exist.",
