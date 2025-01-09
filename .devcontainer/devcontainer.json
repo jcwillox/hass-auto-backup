@@ -16,7 +16,7 @@
   },
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "pipx install uv && uv sync",
+  "postCreateCommand": "sudo chown vscode /venvs && pipx install uv && uv sync",
 
   // Configure tool-specific properties.
   "customizations": {
@@ -30,10 +30,23 @@
         "ms-python.black-formatter",
         "keesschollaart.vscode-home-assistant",
         "tamasfe.even-better-toml"
-      ]
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/venvs/${localWorkspaceFolderBasename}/bin/python"
+      }
     }
-  }
+  },
+
+  "remoteEnv": {
+    "UV_PRERELEASE": "allow",
+    "UV_PROJECT_ENVIRONMENT": "/venvs/${localWorkspaceFolderBasename}",
+    "UV_LINK_MODE": "copy"
+  },
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  // "remoteUser": "root",
+
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-venvs,target=/venvs,type=volume,consistency=cached"
+  ]
 }
