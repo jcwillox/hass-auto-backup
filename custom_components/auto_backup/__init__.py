@@ -9,7 +9,7 @@ from typing import List, Dict, Tuple, Optional
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.components.backup.const import DOMAIN as DOMAIN_BACKUP
+from homeassistant.components.backup.const import DOMAIN as DOMAIN_BACKUP, DATA_MANAGER
 from homeassistant.components.hassio import (
     ATTR_FOLDERS,
     ATTR_ADDONS,
@@ -155,10 +155,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if is_hassio(hass):
         handler = SupervisorHandler(getenv("SUPERVISOR"), async_get_clientsession(hass))
     else:
-        handler = BackupHandler(hass, hass.data[DOMAIN_BACKUP])
+        handler = BackupHandler(hass, hass.data[DATA_MANAGER])
 
     auto_backup = AutoBackup(hass, options, handler)
-    hass.data.setdefault(DOMAIN, {})[DATA_AUTO_BACKUP] = auto_backup
+    hass.data[DATA_AUTO_BACKUP] = auto_backup
     entry.async_on_unload(entry.add_update_listener(auto_backup.update_listener))
 
     await auto_backup.load_snapshots_expiry()

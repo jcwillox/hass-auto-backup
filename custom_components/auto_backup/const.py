@@ -1,7 +1,13 @@
+from typing import TYPE_CHECKING
+
 from homeassistant.const import Platform
+from homeassistant.util.hass_dict import HassKey
+
+if TYPE_CHECKING:
+    from . import AutoBackup
 
 DOMAIN = "auto_backup"
-DATA_AUTO_BACKUP = "auto_backup"
+DATA_AUTO_BACKUP: HassKey[AutoBackup] = HassKey(DOMAIN)
 UNSUB_LISTENER = "unsub_listener"
 
 CONF_AUTO_PURGE = "auto_purge"
