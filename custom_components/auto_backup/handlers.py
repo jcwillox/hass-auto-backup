@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 import aiohttp
 from aiohttp.hdrs import AUTHORIZATION
-from homeassistant.components.backup import BackupManager
+from homeassistant.components.backup.manager import BackupManager
 from homeassistant.components.hassio import ATTR_PASSWORD
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import HomeAssistant

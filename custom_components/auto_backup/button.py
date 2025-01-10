@@ -3,7 +3,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import AutoBackup
+from .manager import AutoBackup
 from .const import DATA_AUTO_BACKUP
 from .helpers import get_device_info
 
