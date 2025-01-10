@@ -4,6 +4,7 @@ from fnmatch import fnmatchcase
 from os.path import join, isfile
 from typing import List, Dict, Tuple, Optional
 
+from homeassistant.components.backup.manager import DATA_MANAGER
 from homeassistant.components.hassio import (
     ATTR_FOLDERS,
     ATTR_ADDONS,
@@ -34,6 +35,7 @@ from .const import (
     ATTR_EXCLUDE,
     ATTR_KEEP_DAYS,
     ATTR_DOWNLOAD_PATH,
+    ATTR_ENCRYPTED,
 )
 from .handlers import HassioAPIError, HandlerBase
 
@@ -44,6 +46,7 @@ class AutoBackup:
     def __init__(self, hass: HomeAssistant, options: Dict, handler: HandlerBase):
         self._hass = hass
         self._handler = handler
+        self._manager = hass.data[DATA_MANAGER]
         self._auto_purge = options[CONF_AUTO_PURGE]
         self._backup_timeout = options[CONF_BACKUP_TIMEOUT] * 60
         self._state = 0
@@ -216,6 +219,17 @@ class AutoBackup:
         """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
         download_paths: Optional[List[str]] = data.pop(ATTR_DOWNLOAD_PATH, None)
+
+        # support default encryption key
+        if (
+            not data.get(ATTR_PASSWORD, "")
+            and data.get(ATTR_ENCRYPTED)
+            and self._manager
+        ):
+            data[ATTR_PASSWORD] = self._manager.config.data.create_backup.password
+            del data[ATTR_ENCRYPTED]
+        elif ATTR_ENCRYPTED in data:
+            del data[ATTR_ENCRYPTED]
 
         ### LOG DEBUG INFO ###
         # ensure password is scrubbed from logs

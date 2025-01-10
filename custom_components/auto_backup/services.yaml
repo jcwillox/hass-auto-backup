@@ -60,9 +60,17 @@ backup:
               value: media
             - label: Local Add-ons
               value: addons
+    encrypted: &encrypted
+      name: Encrypted
+      description: |
+        Encrypt backups with the default encryption key found in backup settings,
+        if encrypted is false and password is not set backups will be unencrypted.
+      default: false
+      selector:
+        boolean:
     password: &password
       name: Password
-      description: Optional password to secure backup.
+      description: Optional custom password to encrypt the backup with.
       example: "1234"
       selector:
         text:
@@ -113,6 +121,7 @@ backup_full:
       default: { "addons": ["MariaDB"], "folders": ["Local add-ons", "share"] }
       selector:
         object:
+    encrypted: *encrypted
     password: *password
     keep_days: *keep_days
     location: *location
@@ -150,6 +159,7 @@ backup_partial:
               value: media
             - label: Local Add-ons
               value: addons
+    encrypted: *encrypted
     password: *password
     keep_days: *keep_days
     location: *location
