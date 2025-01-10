@@ -7,7 +7,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.hassio import is_hassio
 
-from . import is_backup
+from .helpers import is_backup
 from .const import DOMAIN, DEFAULT_BACKUP_TIMEOUT, CONF_AUTO_PURGE, CONF_BACKUP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)

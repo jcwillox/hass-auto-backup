@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from homeassistant.const import Platform
 from homeassistant.util.hass_dict import HassKey
 
 if TYPE_CHECKING:
-    from . import AutoBackup
+    from .manager import AutoBackup
 
 DOMAIN = "auto_backup"
 DATA_AUTO_BACKUP: HassKey[AutoBackup] = HassKey(DOMAIN)
@@ -21,4 +23,31 @@ EVENT_BACKUP_START = f"{DOMAIN}.backup_start"
 EVENT_BACKUP_FAILED = f"{DOMAIN}.backup_failed"
 EVENT_BACKUPS_PURGED = f"{DOMAIN}.purged_backups"
 
-PLATFORMS = [Platform.SENSOR]
+STORAGE_KEY = "snapshots_expiry"
+STORAGE_VERSION = 1
+
+ATTR_KEEP_DAYS = "keep_days"
+ATTR_INCLUDE = "include"
+ATTR_INCLUDE_ADDONS = "include_addons"
+ATTR_INCLUDE_FOLDERS = "include_folders"
+ATTR_EXCLUDE = "exclude"
+ATTR_EXCLUDE_ADDONS = "exclude_addons"
+ATTR_EXCLUDE_FOLDERS = "exclude_folders"
+ATTR_DOWNLOAD_PATH = "download_path"
+ATTR_COMPRESSED = "compressed"
+ATTR_LOCATION = "location"
+
+DEFAULT_BACKUP_FOLDERS = {
+    "ssl": "ssl",
+    "share": "share",
+    "media": "media",
+    "addons": "addons/local",
+    "config": "homeassistant",
+    "local add-ons": "addons/local",
+    "home assistant configuration": "homeassistant",
+}
+
+SERVICE_PURGE = "purge"
+SERVICE_BACKUP = "backup"
+SERVICE_BACKUP_FULL = "backup_full"
+SERVICE_BACKUP_PARTIAL = "backup_partial"
