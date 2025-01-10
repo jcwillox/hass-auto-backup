@@ -37,6 +37,7 @@ from .const import (
     DEFAULT_BACKUP_TIMEOUT,
     DATA_AUTO_BACKUP,
     DOMAIN,
+    ATTR_ENCRYPTED,
 )
 from .handlers import SupervisorHandler, BackupHandler
 from .helpers import is_backup
@@ -53,7 +54,8 @@ SCHEMA_BACKUP_BASE = vol.Schema(
         vol.Optional(ATTR_PASSWORD): vol.Any(None, cv.string),
         vol.Optional(ATTR_KEEP_DAYS): vol.Any(None, vol.Coerce(float)),
         vol.Optional(ATTR_DOWNLOAD_PATH): vol.All(cv.ensure_list, [cv.isdir]),
-        vol.Optional(ATTR_COMPRESSED): cv.boolean,
+        vol.Optional(ATTR_ENCRYPTED, default=False): cv.boolean,
+        vol.Optional(ATTR_COMPRESSED, default=True): cv.boolean,
         vol.Optional(ATTR_LOCATION): vol.All(
             cv.string, lambda v: None if v == "/backup" else v
         ),

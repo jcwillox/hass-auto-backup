@@ -35,6 +35,7 @@ ATTR_EXCLUDE_ADDONS = "exclude_addons"
 ATTR_EXCLUDE_FOLDERS = "exclude_folders"
 ATTR_DOWNLOAD_PATH = "download_path"
 ATTR_COMPRESSED = "compressed"
+ATTR_ENCRYPTED = "encrypted"
 ATTR_LOCATION = "location"
 
 ATTR_LAST_FAILURE = "last_failure"

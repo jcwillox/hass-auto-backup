@@ -19,7 +19,7 @@ Auto Backup is an Improved Backup Service for Home Assistant that can Automatica
 -   [x] Provides a [sensor](sensors.md) to monitor the status of your backups.
 -   [x] Creates [events](events.md) for when backups are started/created/failed/deleted.
 -   [x] Supports [generational backup](advanced-examples.md#generational-backups) schemes.
--   [x] Supports unencrypted and encrypted backups, including the default encryption added in 2025.1 see [#181](https://github.com/jcwillox/hass-auto-backup/issues/181).
+-   [x] Supports unencrypted and [encrypted](services.md#encryption) backups, including the default encryption added in 2025.1.
 
 ## Blueprints
 
