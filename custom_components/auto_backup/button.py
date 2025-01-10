@@ -22,7 +22,6 @@ class AutoBackupPurgeButton(ButtonEntity):
         name="Purge backups",
         icon="mdi:close-circle",
     )
-
     _attr_has_entity_name = True
 
     def __init__(self, entry: ConfigEntry, auto_backup: AutoBackup):

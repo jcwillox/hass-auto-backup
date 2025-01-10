@@ -78,12 +78,15 @@ class AutoBackup:
     def state(self):
         return self._state
 
-    def get_next_expiry(self):
+    def get_next_expiry(self) -> datetime | None:
         """Return the next snapshot expiry date that has not expired"""
         return min(
-            expiry
-            for expiry in self._snapshots.values()
-            if expiry > datetime.now().astimezone()
+            (
+                expiry
+                for expiry in self._snapshots.values()
+                if expiry > datetime.now().astimezone()
+            ),
+            default=None,
         )
 
     @classmethod
