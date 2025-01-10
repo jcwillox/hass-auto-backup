@@ -19,8 +19,8 @@ extra:
 nav:
   - "index.md"
   - "services.md"
-  - "events.md"
   - "sensors.md"
+  - "events.md"
   - "faq.md"
   - Examples:
       - "examples.md"
