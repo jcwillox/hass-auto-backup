@@ -37,6 +37,12 @@ ATTR_DOWNLOAD_PATH = "download_path"
 ATTR_COMPRESSED = "compressed"
 ATTR_LOCATION = "location"
 
+ATTR_LAST_FAILURE = "last_failure"
+ATTR_PURGEABLE = "purgeable_backups"
+ATTR_MONITORED = "monitored_backups"
+ATTR_ERROR = "error"
+ATTR_SLUG = "slug"
+
 DEFAULT_BACKUP_FOLDERS = {
     "ssl": "ssl",
     "share": "share",
