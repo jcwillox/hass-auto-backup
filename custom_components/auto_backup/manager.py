@@ -220,12 +220,13 @@ class AutoBackup:
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
         download_paths: Optional[List[str]] = data.pop(ATTR_DOWNLOAD_PATH, None)
 
+        # remove password if empty
+        has_password = len(data.get(ATTR_PASSWORD, "")) > 0
+        if not has_password and ATTR_PASSWORD in data:
+            del data[ATTR_PASSWORD]
+
         # support default encryption key
-        if (
-            not data.get(ATTR_PASSWORD, "")
-            and data.get(ATTR_ENCRYPTED)
-            and self._manager
-        ):
+        if not has_password and data.get(ATTR_ENCRYPTED) and self._manager:
             data[ATTR_PASSWORD] = self._manager.config.data.create_backup.password
             del data[ATTR_ENCRYPTED]
         elif ATTR_ENCRYPTED in data:
