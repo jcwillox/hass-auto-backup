@@ -11,6 +11,10 @@ on:
         type: boolean
         description: "Draft release"
         default: false
+      discussion:
+        type: boolean
+        description: "Create discussion"
+        default: false
       release_type:
         type: choice
         description: "Release type"
@@ -47,6 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEMANTIC_RELEASE_GITHUB_DRAFT: ${{ inputs.draft }}
+          SEMANTIC_RELEASE_GITHUB_DISCUSSION: ${{ inputs.discussion }}
           SEMANTIC_RELEASE_FORCE_RELEASE: ${{ inputs.release_type }}
           SEMANTIC_RELEASE_CMD_PREPARE: |
             yq -i '.version = "${nextRelease.version}"' manifest.json
