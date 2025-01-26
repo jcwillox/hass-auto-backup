@@ -9,6 +9,7 @@ from homeassistant.components.hassio import (
     ATTR_FOLDERS,
     ATTR_ADDONS,
     ATTR_PASSWORD,
+    ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME, __version__
@@ -36,6 +37,7 @@ from .const import (
     ATTR_KEEP_DAYS,
     ATTR_DOWNLOAD_PATH,
     ATTR_ENCRYPTED,
+    ATTR_EXCLUDE_DATABASE,
 )
 from .handlers import HassioAPIError, HandlerBase
 
@@ -219,6 +221,10 @@ class AutoBackup:
         """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
         download_paths: Optional[List[str]] = data.pop(ATTR_DOWNLOAD_PATH, None)
+
+        # handle exclude database
+        if data.pop(ATTR_EXCLUDE_DATABASE, False):
+            data[ATTR_HOMEASSISTANT_EXCLUDE_DATABASE] = True
 
         # remove password if empty
         has_password = len(data.get(ATTR_PASSWORD, "")) > 0

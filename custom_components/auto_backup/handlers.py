@@ -1,4 +1,3 @@
-import aiofiles
 import asyncio
 import logging
 import shutil
@@ -6,10 +5,14 @@ from http import HTTPStatus
 from os import getenv
 from typing import Dict, List, Optional
 
+import aiofiles
 import aiohttp
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup.manager import BackupManager
-from homeassistant.components.hassio import ATTR_PASSWORD
+from homeassistant.components.hassio import (
+    ATTR_PASSWORD,
+    ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
+)
 from homeassistant.const import ATTR_NAME
 from homeassistant.core import HomeAssistant
 
@@ -184,7 +187,7 @@ class BackupHandler(HandlerBase):
         backup = await self._manager.async_create_backup(
             agent_ids=[agent_id],
             name=config.get(ATTR_NAME),
-            include_database=True,
+            include_database=not config.get(ATTR_HOMEASSISTANT_EXCLUDE_DATABASE, False),
             include_folders=None,
             include_homeassistant=True,
             password=config.get(ATTR_PASSWORD),

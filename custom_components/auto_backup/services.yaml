@@ -60,6 +60,12 @@ backup:
               value: media
             - label: Local Add-ons
               value: addons
+    exclude_database: &exclude_database
+      name: "Exclude: Database"
+      description: Exclude the Home Assistant built-in database from the backup.
+      default: false
+      selector:
+        boolean:
     encrypted: &encrypted
       name: Encrypted
       description: |
@@ -121,6 +127,7 @@ backup_full:
       default: { "addons": ["MariaDB"], "folders": ["Local add-ons", "share"] }
       selector:
         object:
+    exclude_database: *exclude_database
     encrypted: *encrypted
     password: *password
     keep_days: *keep_days
@@ -159,6 +166,7 @@ backup_partial:
               value: media
             - label: Local Add-ons
               value: addons
+    exclude_database: *exclude_database
     encrypted: *encrypted
     password: *password
     keep_days: *keep_days

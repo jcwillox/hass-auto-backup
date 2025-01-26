@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.const import Platform
 from homeassistant.util.hass_dict import HassKey
 
 if TYPE_CHECKING:
@@ -33,6 +32,7 @@ ATTR_INCLUDE_FOLDERS = "include_folders"
 ATTR_EXCLUDE = "exclude"
 ATTR_EXCLUDE_ADDONS = "exclude_addons"
 ATTR_EXCLUDE_FOLDERS = "exclude_folders"
+ATTR_EXCLUDE_DATABASE = "exclude_database"
 ATTR_DOWNLOAD_PATH = "download_path"
 ATTR_COMPRESSED = "compressed"
 ATTR_ENCRYPTED = "encrypted"
