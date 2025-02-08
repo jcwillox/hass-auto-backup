@@ -41,13 +41,18 @@ jobs:
       - name: "Checkout the repository"
         uses: actions/checkout@v4
 
+      - name: "Setup pnpm"
+        uses: pnpm/action-setup@v4
+        with:
+          version: "latest"
+
       - name: "Setup node"
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
       - name: "Release Package 📦"
-        run: corepack enable && pnpm dlx @jcwillox/semantic-release-config
+        run: pnpm dlx @jcwillox/semantic-release-config
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SEMANTIC_RELEASE_GITHUB_DRAFT: ${{ inputs.draft }}
