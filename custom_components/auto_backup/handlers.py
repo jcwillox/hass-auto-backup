@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import shutil
+from dataclasses import asdict
 from http import HTTPStatus
 from os import getenv
 from typing import Dict, List, Optional
@@ -199,7 +200,7 @@ class BackupHandler(HandlerBase):
             backup.backup_job_id
         )
 
-        return {"slug": backup.backup_id, **backup.as_dict()}
+        return {"slug": backup.backup_id, **asdict(backup)}
 
     async def remove_backup(self, slug):
         await self._manager.async_delete_backup(slug)
