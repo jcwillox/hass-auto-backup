@@ -10,7 +10,7 @@ import aiofiles
 import aiohttp
 from aiohttp.hdrs import AUTHORIZATION
 from homeassistant.components.backup.manager import BackupManager
-from homeassistant.components.hassio import (
+from homeassistant.components.hassio.const import (
     ATTR_PASSWORD,
     ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
 )
