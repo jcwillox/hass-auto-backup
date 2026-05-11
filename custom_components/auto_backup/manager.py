@@ -46,6 +46,7 @@ from .const import (
     ATTR_DOWNLOAD_PATH,
     ATTR_ENCRYPTED,
     ATTR_EXCLUDE_DATABASE,
+    ATTR_FILENAME,
 )
 from .handlers import HassioAPIError, HandlerBase
 
@@ -245,6 +246,10 @@ class AutoBackup:
             del data[ATTR_ENCRYPTED]
         elif ATTR_ENCRYPTED in data:
             del data[ATTR_ENCRYPTED]
+
+        # Add on-disk filename if supervised
+        if self._supervised:
+            data[ATTR_FILENAME] = data[ATTR_NAME] + ".tar"
 
         ### LOG DEBUG INFO ###
         # ensure password is scrubbed from logs

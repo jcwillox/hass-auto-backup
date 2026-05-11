@@ -43,6 +43,7 @@ ATTR_PURGEABLE = "purgeable_backups"
 ATTR_MONITORED = "monitored_backups"
 ATTR_ERROR = "error"
 ATTR_SLUG = "slug"
+ATTR_FILENAME = "filename"
 
 DEFAULT_BACKUP_FOLDERS = {
     "ssl": "ssl",
