@@ -6,11 +6,18 @@ from os import getenv
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.backup.const import DATA_MANAGER
-from homeassistant.components.hassio import (
-    ATTR_FOLDERS,
-    ATTR_ADDONS,
-    ATTR_PASSWORD,
-)
+try:
+    from homeassistant.components.hassio.const import (  # HA 2026.5+
+        ATTR_FOLDERS,
+        ATTR_ADDONS,
+        ATTR_PASSWORD,
+    )
+except ImportError:
+    from homeassistant.components.hassio import (  # HA < 2026.5
+        ATTR_FOLDERS,
+        ATTR_ADDONS,
+        ATTR_PASSWORD,
+    )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME, Platform
 from homeassistant.core import HomeAssistant, ServiceCall

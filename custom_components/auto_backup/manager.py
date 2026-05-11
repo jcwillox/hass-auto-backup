@@ -5,12 +5,20 @@ from os.path import join, isfile
 from typing import List, Dict, Tuple, Optional
 
 from homeassistant.components.backup.manager import DATA_MANAGER
-from homeassistant.components.hassio import (
-    ATTR_FOLDERS,
-    ATTR_ADDONS,
-    ATTR_PASSWORD,
-    ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
-)
+try:
+    from homeassistant.components.hassio.const import (  # HA 2026.5+
+        ATTR_FOLDERS,
+        ATTR_ADDONS,
+        ATTR_PASSWORD,
+        ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
+    )
+except ImportError:
+    from homeassistant.components.hassio import (  # HA < 2026.5
+        ATTR_FOLDERS,
+        ATTR_ADDONS,
+        ATTR_PASSWORD,
+        ATTR_HOMEASSISTANT_EXCLUDE_DATABASE,
+    )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME, __version__
 from homeassistant.core import HomeAssistant
