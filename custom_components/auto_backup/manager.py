@@ -349,10 +349,9 @@ class AutoBackup:
                 _LOGGER.warning(message, err)
             else:
                 _LOGGER.error(message, err)
-            return False
-        finally:
-            # remove snapshot expiry.
-            del self._snapshots[slug]
+                return False
+        # remove snapshot expiry.
+        self._snapshots.pop(slug, None)
         return True
 
     def async_download_backup(self, name, slug, backup_path):

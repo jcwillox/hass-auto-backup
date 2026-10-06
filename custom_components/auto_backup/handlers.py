@@ -99,7 +99,12 @@ class SupervisorHandler(HandlerBase):
                     timeout=None,
                 )
 
-                if request.status not in (HTTPStatus.OK, HTTPStatus.BAD_REQUEST):
+                if request.status not in (
+                    HTTPStatus.OK,
+                    HTTPStatus.BAD_REQUEST,
+                    # error responses (e.g. 404) still carry the API error message
+                    HTTPStatus.NOT_FOUND,
+                ):
                     _LOGGER.error("%s return code %d.", command, request.status)
                     raise HassioAPIError()
 
