@@ -4,7 +4,12 @@
   "name": "jcwillox/hass-auto-backup",
 
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14-bookworm",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+      "packages": ["ffmpeg", "libturbojpeg0", "libpcap-dev"]
+    }
+  },
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [8123],
@@ -27,12 +32,16 @@
         "esbenp.prettier-vscode",
         "redhat.vscode-yaml",
         "ms-python.python",
+        "ms-python.vscode-pylance",
         "ms-python.black-formatter",
         "keesschollaart.vscode-home-assistant",
         "tamasfe.even-better-toml"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/venvs/${localWorkspaceFolderBasename}/bin/python"
+        "python.defaultInterpreterPath": "/venvs/${localWorkspaceFolderBasename}/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": ["tests"]
       }
     }
   },
