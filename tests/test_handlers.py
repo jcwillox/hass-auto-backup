@@ -39,9 +39,7 @@ def test_remove_backup_success():
 
 
 def test_remove_backup_missing_backup_surfaces_api_message():
-    handler = make_handler(
-        404, {"result": "error", "message": "Backup does not exist"}
-    )
+    handler = make_handler(404, {"result": "error", "message": "Backup does not exist"})
     with pytest.raises(HassioAPIError, match="^Backup does not exist$"):
         asyncio.run(handler.remove_backup("slug"))
 

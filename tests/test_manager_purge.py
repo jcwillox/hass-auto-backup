@@ -70,7 +70,9 @@ def test_successful_purge_removes_tracking():
     assert auto_backup._handler.removed == ["aaa", "bbb"]
     assert auto_backup._snapshots == {}
     assert auto_backup._store.saved == {}
-    assert auto_backup._hass.bus.events == [(EVENT_BACKUPS_PURGED, {"backups": ["aaa", "bbb"]})]
+    assert auto_backup._hass.bus.events == [
+        (EVENT_BACKUPS_PURGED, {"backups": ["aaa", "bbb"]})
+    ]
 
 
 def test_transient_failure_keeps_tracking_for_retry():

@@ -5,6 +5,7 @@ from os.path import join, isfile
 from typing import List, Dict, Tuple, Optional
 
 from homeassistant.components.backup.manager import DATA_MANAGER
+
 try:
     from homeassistant.components.hassio.const import (  # HA 2026.5+
         ATTR_FOLDERS,

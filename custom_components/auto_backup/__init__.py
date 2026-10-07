@@ -6,6 +6,7 @@ from os import getenv
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.backup.const import DATA_MANAGER
+
 try:
     from homeassistant.components.hassio.const import (  # HA 2026.5+
         ATTR_FOLDERS,
