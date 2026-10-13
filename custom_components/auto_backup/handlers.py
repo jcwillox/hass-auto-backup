@@ -210,8 +210,10 @@ class BackupHandler(HandlerBase):
         [backup, agent_errors] = await self._manager.async_get_backup(
             backup.backup_job_id
         )
+        agent = self._manager.local_backup_agents[agent_id]
+        filename = agent.get_backup_path(backup.backup_id).name
 
-        return {"slug": backup.backup_id, **asdict(backup)}
+        return {"slug": backup.backup_id, "filename": filename, **asdict(backup)}
 
     async def remove_backup(self, slug):
         await self._manager.async_delete_backup(slug)
