@@ -22,6 +22,7 @@ from .const import (
     ATTR_PURGEABLE,
     ATTR_ERROR,
     ATTR_SLUG,
+    ATTR_FILENAME,
 )
 from .helpers import get_device_info
 from .manager import AutoBackup
@@ -215,6 +216,9 @@ class AutoBackupLastSuccessSensor(RestoreSensor, AutoBackupBaseSensor):
             self._attr_extra_state_attributes[ATTR_SLUG] = state.attributes.get(
                 ATTR_SLUG
             )
+            self._attr_extra_state_attributes[ATTR_FILENAME] = state.attributes.get(
+                ATTR_FILENAME
+            )
 
         @callback
         def backup_success(event_: Event):
@@ -222,6 +226,9 @@ class AutoBackupLastSuccessSensor(RestoreSensor, AutoBackupBaseSensor):
             self._attr_native_value = datetime.now().astimezone()
             self._attr_extra_state_attributes[ATTR_NAME] = event_.data.get(ATTR_NAME)
             self._attr_extra_state_attributes[ATTR_SLUG] = event_.data.get(ATTR_SLUG)
+            self._attr_extra_state_attributes[ATTR_FILENAME] = event_.data.get(
+                ATTR_FILENAME
+            )
             self.async_schedule_update_ha_state(True)
 
         self.async_on_remove(

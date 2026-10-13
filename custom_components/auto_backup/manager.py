@@ -46,6 +46,7 @@ from .const import (
     ATTR_DOWNLOAD_PATH,
     ATTR_ENCRYPTED,
     ATTR_EXCLUDE_DATABASE,
+    ATTR_FILENAME,
 )
 from .handlers import HassioAPIError, HandlerBase
 
@@ -282,12 +283,17 @@ class AutoBackup:
             # backup creation was successful
             slug = result["slug"]
             name = result.get(ATTR_NAME, data[ATTR_NAME])
+            # the supervisor stores backups as `<slug>.tar` by default
+            filename = result.get(ATTR_FILENAME) or f"{slug}.tar"
 
-            _LOGGER.info("Backup created successfully: '%s' (%s)", name, slug)
+            _LOGGER.info(
+                "Backup created successfully: '%s' (%s) as '%s'", name, slug, filename
+            )
 
             self._state -= 1
             self._hass.bus.async_fire(
-                EVENT_BACKUP_SUCCESSFUL, {"name": name, "slug": slug}
+                EVENT_BACKUP_SUCCESSFUL,
+                {"name": name, "slug": slug, ATTR_FILENAME: filename},
             )
 
             if keep_days is not None:
