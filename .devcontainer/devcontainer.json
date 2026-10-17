@@ -26,6 +26,7 @@
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
+      // Keep this list in sync with .vscode/extensions.json
       "extensions": [
         "editorconfig.editorconfig",
         "christian-kohler.path-intellisense",
@@ -39,6 +40,7 @@
       ],
       "settings": {
         "python.defaultInterpreterPath": "/venvs/${localWorkspaceFolderBasename}/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
         "python.testing.pytestEnabled": true,
         "python.testing.unittestEnabled": false,
         "python.testing.pytestArgs": ["tests"]
@@ -46,7 +48,8 @@
     }
   },
 
-  "remoteEnv": {
+  "containerEnv": {
+    "PYTHONASYNCIODEBUG": "1",
     "UV_PRERELEASE": "allow",
     "UV_PROJECT_ENVIRONMENT": "/venvs/${localWorkspaceFolderBasename}",
     "UV_LINK_MODE": "copy"
@@ -56,6 +59,6 @@
   // "remoteUser": "root",
 
   "mounts": [
-    "source=${localWorkspaceFolderBasename}-venvs,target=/venvs,type=volume,consistency=cached"
+    "source=${localWorkspaceFolderBasename}-venvs,target=/venvs,type=volume"
   ]
 }
