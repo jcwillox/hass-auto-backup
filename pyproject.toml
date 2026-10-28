@@ -16,7 +16,7 @@ docs = [
   "mkdocs-material>=9.7.7"
 ]
 dev = [
-  "aiohasupervisor==0.6.0",
+  "aiohasupervisor==0.9.0",
   "black>=26.10.0",
   "colorlog>=6.12.0",
   "pytest>=9.1.1"

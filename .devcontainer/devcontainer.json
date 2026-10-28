@@ -4,7 +4,7 @@
   "name": "jcwillox/hass-auto-backup",
 
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/python:3.14-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/python:3.15-bookworm",
   "features": {
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
       "packages": ["ffmpeg", "libturbojpeg0", "libpcap-dev"]
