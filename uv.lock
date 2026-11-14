@@ -63,16 +63,16 @@ wheels = [
 
 [[package]]
 name = "aiohasupervisor"
-version = "0.6.0"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "mashumaro" },
     { name = "orjson" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/55/76/24e578dcf937b27017befb2fc2402565810a7716cdd43abbb8cefc2f425c/aiohasupervisor-0.6.0.tar.gz", hash = "sha256:debee1dc3b99114f5b653959cb828a74a13181011cae3ac013ae9aefb0cda062", size = 47453, upload-time = "2026-07-20T15:15:23.821Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/8c/9bf8847aa67e08fc89a570abf19895eac89d2bb66ac47924ba7526caf33b/aiohasupervisor-0.11.0.tar.gz", hash = "sha256:e53651e335c2a016aef53b633958415ecc60861b0a1464a756d20c891fa398f3", size = 75426, upload-time = "2026-11-10T18:34:03.117Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/0d/71721a72bf81c00039c147b5f2dba913213de526940f82c697fbeed65ee7/aiohasupervisor-0.6.0-py3-none-any.whl", hash = "sha256:6f78f474160e6f90fda1879f0fe7d341d8cfd5f69eec4cb0cb60483816f73d60", size = 42596, upload-time = "2026-07-20T15:15:22.604Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/da/6f2e383e39b4c7166a3a42fe76209dc44f9e885f31bb167815647293ebce/aiohasupervisor-0.11.0-py3-none-any.whl", hash = "sha256:7afdfe309f3a1204aee450160845dc79cbc145ad40a976c76b153adf60e00b44", size = 56242, upload-time = "2026-11-10T18:34:01.42Z" },
 ]
 
 [[package]]
@@ -1016,7 +1016,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "aiohasupervisor", specifier = "==0.6.0" },
+    { name = "aiohasupervisor", specifier = "==0.11.0" },
     { name = "black", specifier = ">=26.10.0" },
     { name = "colorlog", specifier = ">=6.12.0" },
     { name = "pytest", specifier = ">=9.1.1" },
