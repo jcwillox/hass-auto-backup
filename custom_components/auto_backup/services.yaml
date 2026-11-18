@@ -177,3 +177,18 @@ backup_partial:
 purge:
   name: Purge
   description: Purge expired backups.
+
+check_nas:
+  name: Check NAS
+  description: Check NAS availability, archive dates and retention coverage without deleting files or reading every archive.
+
+verify_nas:
+  name: Verify NAS archives
+  description: Read every managed NAS archive and compare SHA-256 against its sidecar and independent Home Assistant receipt. May take several minutes.
+  fields:
+    adopt_legacy:
+      name: Adopt legacy Samba Backup archives
+      description: Validate unencrypted legacy archives and establish checksum baselines. Disable the old Samba rotation before adopting.
+      default: false
+      selector:
+        boolean:

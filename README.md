@@ -16,6 +16,8 @@ For more information and examples check the [documentation](https://jcwillox.git
 
 ## Features
 
+
+- Optional [verified SMB/NAS backups](docs/verified-nas.md) with SHA-256 read-back and calendar retention.
 - Provides more advanced and configurable [service calls](https://jcwillox.github.io/hass-auto-backup/services).
 - [Exclude addons/folders](https://jcwillox.github.io/hass-auto-backup/services) from a backup.
 - [Automatically delete backups](https://jcwillox.github.io/hass-auto-backup/services/#keep-days) after an individually specified amount of time.

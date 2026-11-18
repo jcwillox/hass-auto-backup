@@ -3,7 +3,7 @@
     "config": {
         "step": {
             "user": {
-                "title": "\uD83D\uDDC3️ Auto Backup",
+                "title": "🗃️ Auto Backup",
                 "description": "Improved backup service for Home Assistant that can automatically remove backups"
             }
         },
@@ -17,9 +17,25 @@
             "init": {
                 "data": {
                     "auto_purge": "Automatically delete expired backups",
-                    "backup_timeout": "Backup Timeout (minutes)"
+                    "backup_timeout": "Backup Timeout (minutes)",
+                    "nas_enabled": "Verified NAS copy (SHA-256)",
+                    "nas_server": "NAS address",
+                    "nas_share": "SMB share",
+                    "nas_folder": "Relative folder within share",
+                    "nas_username": "NAS username",
+                    "nas_password": "NAS password (leave blank to retain saved password)",
+                    "nas_workgroup": "SMB workgroup",
+                    "nas_daily": "Daily copies",
+                    "nas_weekly": "Sunday copies",
+                    "nas_monthly": "Monthly copies (first available Sunday)",
+                    "nas_keep_local": "Verified local copies to retain",
+                    "nas_manage_legacy": "Also manage legacy Samba Backup archives in this folder"
                 }
             }
+        },
+        "error": {
+            "invalid_nas_config": "Check NAS destination, credentials and retention counts.",
+            "nas_requires_supervisor": "Verified NAS backups require Home Assistant OS with Supervisor."
         }
     }
 }

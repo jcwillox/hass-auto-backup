@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import shutil
+import re
+from urllib.request import Request, urlopen
 from dataclasses import asdict
 from http import HTTPStatus
 from os import getenv
@@ -127,8 +129,29 @@ class SupervisorHandler(HandlerBase):
     async def get_addons(self) -> List[Dict]:
         result = await self._get_addons_repositories()
         return [
-            addon for addon in result.get("addons", []) if addon.get("installed", True)
+            addon
+            for addon in result.get("addons", result.get("apps", []))
+            if addon.get("installed", True)
         ]
+
+    @api_data
+    def _get_backups(self):
+        return self.send_command("/backups", method="get")
+
+    async def get_backups(self):
+        result = await self._get_backups()
+        return result.get("backups", [])
+
+    def open_backup_stream(self, slug):
+        """Open original bytes for a worker-thread upload; never call on the loop."""
+        if not re.fullmatch(r"[a-f0-9]{8}", slug):
+            raise HassioAPIError("Invalid backup identifier")
+        return urlopen(
+            Request(
+                f"http://{self._ip}/backups/{slug}/download", headers=self._headers
+            ),
+            timeout=60,
+        )
 
     @api_data
     def create_backup(
@@ -156,7 +179,7 @@ class SupervisorHandler(HandlerBase):
                     timeout=None,
                 )
 
-                if request.status not in (200, 400):
+                if request.status != 200:
                     _LOGGER.error("%s return code %d.", command, request.status)
                     raise HassioAPIError()
 
