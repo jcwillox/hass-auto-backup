@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from datetime import datetime, timedelta, timezone
 from fnmatch import fnmatchcase
 from os.path import join, isfile
@@ -49,6 +50,7 @@ from .const import (
     ATTR_EXCLUDE_DATABASE,
 )
 from .handlers import HassioAPIError, HandlerBase
+from .nas_manager import NasBackupManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +63,8 @@ class AutoBackup:
         self._auto_purge = options[CONF_AUTO_PURGE]
         self._backup_timeout = options[CONF_BACKUP_TIMEOUT] * 60
         self._state = 0
+        self._backup_lock = asyncio.Lock()
+        self._nas = NasBackupManager(hass, options, handler)
         self._snapshots = {}
         self._supervised = is_hassio(hass)
         self._store = Store(
@@ -71,6 +75,7 @@ class AutoBackup:
         """Handle options update."""
         self._auto_purge = entry.options[CONF_AUTO_PURGE]
         self._backup_timeout = entry.options[CONF_BACKUP_TIMEOUT] * 60
+        await self._nas.update_options(entry.options)
 
     async def load_snapshots_expiry(self):
         """Load snapshots expiry dates from Home Assistant's storage."""
@@ -79,6 +84,11 @@ class AutoBackup:
         if data is not None:
             for slug, expiry in data.items():
                 self._snapshots[slug] = datetime.fromisoformat(expiry)
+        await self._nas.load()
+
+    @property
+    def nas_status(self):
+        return dict(self._nas.status)
 
     @property
     def monitored(self):
@@ -174,6 +184,13 @@ class AutoBackup:
             config[ATTR_NAME] = self.generate_backup_name()
 
     async def async_create_backup(self, data: Dict):
+        """Serialize creation, upload, verification and retention as one job."""
+        if not hasattr(self, "_backup_lock"):
+            self._backup_lock = asyncio.Lock()
+        async with self._backup_lock:
+            return await self._async_create_backup_locked(data)
+
+    async def _async_create_backup_locked(self, data: Dict):
         """Identify actual type of backup to create and handle include/exclude options"""
         self.validate_backup_config(data)
 
@@ -184,7 +201,7 @@ class AutoBackup:
 
         if not (include or exclude):
             # must be a full backup
-            await self._async_create_backup(data)
+            success = await self._async_create_backup(data)
         else:
             installed_addons = await self._handler.get_addons()
 
@@ -220,16 +237,23 @@ class AutoBackup:
 
             data[ATTR_ADDONS] = addons
             data[ATTR_FOLDERS] = folders
-            await self._async_create_backup(data, partial=True)
+            success = await self._async_create_backup(data, partial=True)
 
         ### PURGE BACKUPS ###
-        if self._auto_purge:
+        if success and self._auto_purge:
             await self.purge_backups()
+        return success
 
     async def _async_create_backup(self, data: Dict, partial: bool = False):
         """Create backup, update state, fire events, download backup and purge old backups"""
         keep_days = data.pop(ATTR_KEEP_DAYS, None)
         download_paths: Optional[List[str]] = data.pop(ATTR_DOWNLOAD_PATH, None)
+        nas_enabled = getattr(self, "_nas", None) and self._nas.enabled
+        if nas_enabled and download_paths:
+            raise HomeAssistantError(
+                "Use verified NAS options instead of download_path in NAS mode"
+            )
+        started_at = dt_util.now()
 
         # handle exclude database
         if data.pop(ATTR_EXCLUDE_DATABASE, False):
@@ -280,18 +304,25 @@ class AutoBackup:
                     str(err) + ". There may be a backup already in progress."
                 )
 
-            # backup creation was successful
+            # A local backup alone is not success when a verified NAS is required.
             slug = result["slug"]
             name = result.get(ATTR_NAME, data[ATTR_NAME])
 
-            _LOGGER.info("Backup created successfully: '%s' (%s)", name, slug)
-
-            self._state -= 1
-            self._hass.bus.async_fire(
-                EVENT_BACKUP_SUCCESSFUL, {"name": name, "slug": slug}
+            _LOGGER.info(
+                "%s: '%s' (%s)",
+                (
+                    "Local backup created; NAS verification pending"
+                    if nas_enabled
+                    else "Backup created successfully"
+                ),
+                name,
+                slug,
             )
 
-            if keep_days is not None:
+            if nas_enabled:
+                await self._nas.copy(slug, started_at)
+
+            if keep_days is not None and not nas_enabled:
                 # set snapshot expiry
                 self._snapshots[slug] = datetime.now(timezone.utc) + timedelta(
                     days=float(keep_days)
@@ -302,17 +333,33 @@ class AutoBackup:
             # download backup to location if specified
             if download_paths:
                 for download_path in download_paths:
-                    self._hass.async_create_task(
-                        self.async_download_backup(name, slug, download_path)
-                    )
+                    await self.async_download_backup(name, slug, download_path)
+
+            self._state -= 1
+            self._hass.bus.async_fire(
+                EVENT_BACKUP_SUCCESSFUL,
+                {
+                    "name": name,
+                    "slug": slug,
+                    **(
+                        {"nas_verified": True, "checksum": "sha256"}
+                        if nas_enabled
+                        else {}
+                    ),
+                },
+            )
+            return True
 
         except Exception as err:
             _LOGGER.error("Error during backup. %s", err)
+            if nas_enabled and self._nas.status.get("status") != "error":
+                self._nas.failure("backup", err, notify=False)
             self._state -= 1
             self._hass.bus.async_fire(
                 EVENT_BACKUP_FAILED,
                 {"name": data[ATTR_NAME], "error": str(err)},
             )
+            return False
 
     def get_purgeable_snapshots(self) -> List[str]:
         """Returns the slugs of purgeable snapshots."""
@@ -321,6 +368,8 @@ class AutoBackup:
 
     async def purge_backups(self):
         """Purge expired backups from the Supervisor."""
+        if getattr(self, "_nas", None) and self._nas.enabled:
+            return await self._nas.purge()
         purged = [
             slug
             for slug in self.get_purgeable_snapshots()

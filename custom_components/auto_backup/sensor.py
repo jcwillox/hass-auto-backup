@@ -25,6 +25,7 @@ from .const import (
 )
 from .helpers import get_device_info
 from .manager import AutoBackup
+from .nas_manager import EVENT_NAS_UPDATED
 
 
 async def async_setup_entry(
@@ -40,6 +41,7 @@ async def async_setup_entry(
             AutoBackupLastFailureSensor(entry, auto_backup),
             AutoBackupLastSuccessSensor(entry, auto_backup),
             AutoBackupNextExpirySensor(entry, auto_backup),
+            AutoBackupNasSensor(entry, auto_backup),
         ]
     )
 
@@ -51,6 +53,30 @@ class AutoBackupBaseSensor(SensorEntity):
         self._auto_backup = auto_backup
         self._attr_unique_id = self.entity_description.key
         self._attr_device_info = get_device_info(entry)
+
+
+class AutoBackupNasSensor(AutoBackupBaseSensor):
+    entity_description = SensorEntityDescription(
+        key="nas-status", name="NAS backup", icon="mdi:backup-restore"
+    )
+    _attr_should_poll = False
+
+    @property
+    def native_value(self):
+        return self._auto_backup.nas_status.get("status", "disabled")
+
+    @property
+    def extra_state_attributes(self):
+        return {k: v for k, v in self._auto_backup.nas_status.items() if k != "status"}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+
+        @callback
+        def update(_):
+            self.async_write_ha_state()
+
+        self.async_on_remove(self.hass.bus.async_listen(EVENT_NAS_UPDATED, update))
 
 
 class AutoBackupSensor(AutoBackupBaseSensor):

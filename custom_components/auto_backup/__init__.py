@@ -24,6 +24,7 @@ from homeassistant.const import ATTR_NAME, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.hassio import is_hassio
+from homeassistant.core import SupportsResponse
 
 from .const import (
     ATTR_KEEP_DAYS,
@@ -40,6 +41,8 @@ from .const import (
     SERVICE_BACKUP_FULL,
     SERVICE_BACKUP_PARTIAL,
     SERVICE_PURGE,
+    SERVICE_CHECK_NAS,
+    SERVICE_VERIFY_NAS,
     CONF_AUTO_PURGE,
     CONF_BACKUP_TIMEOUT,
     DEFAULT_BACKUP_TIMEOUT,
@@ -107,6 +110,10 @@ MAP_SERVICES = {
     SERVICE_BACKUP_FULL: SCHEMA_BACKUP_FULL,
     SERVICE_BACKUP_PARTIAL: SCHEMA_BACKUP_PARTIAL,
     SERVICE_PURGE: None,
+    SERVICE_CHECK_NAS: vol.Schema({}),
+    SERVICE_VERIFY_NAS: vol.Schema(
+        {vol.Optional("adopt_legacy", default=False): cv.boolean}
+    ),
 }
 
 
@@ -122,6 +129,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         return False
 
     options = {
+        **entry.options,
         CONF_AUTO_PURGE: entry.options.get(CONF_AUTO_PURGE, True),
         CONF_BACKUP_TIMEOUT: entry.options.get(
             CONF_BACKUP_TIMEOUT, DEFAULT_BACKUP_TIMEOUT
@@ -138,12 +146,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     entry.async_on_unload(entry.add_update_listener(auto_backup.update_listener))
 
     await auto_backup.load_snapshots_expiry()
+    entry.async_on_unload(auto_backup._nas.stop)
 
     ### REGISTER SERVICES ###
     async def async_service_handler(call: ServiceCall):
         """Handle Auto Backup service calls."""
         if call.service == SERVICE_PURGE:
             await auto_backup.purge_backups()
+        elif call.service == SERVICE_CHECK_NAS:
+            return await auto_backup._nas.check()
+        elif call.service == SERVICE_VERIFY_NAS:
+            return await auto_backup._nas.verify(call.data.get("adopt_legacy", False))
         else:
             data = call.data.copy()
             if call.service == SERVICE_BACKUP_PARTIAL:
@@ -166,7 +179,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             await auto_backup.async_create_backup(data)
 
     for service, schema in MAP_SERVICES.items():
-        hass.services.async_register(DOMAIN, service, async_service_handler, schema)
+        hass.services.async_register(
+            DOMAIN,
+            service,
+            async_service_handler,
+            schema,
+            supports_response=(
+                SupportsResponse.OPTIONAL
+                if service in (SERVICE_CHECK_NAS, SERVICE_VERIFY_NAS)
+                else SupportsResponse.NONE
+            ),
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

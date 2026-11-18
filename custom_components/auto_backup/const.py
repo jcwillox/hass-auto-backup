@@ -55,6 +55,8 @@ DEFAULT_BACKUP_FOLDERS = {
 }
 
 SERVICE_PURGE = "purge"
+SERVICE_CHECK_NAS = "check_nas"
+SERVICE_VERIFY_NAS = "verify_nas"
 SERVICE_BACKUP = "backup"
 SERVICE_BACKUP_FULL = "backup_full"
 SERVICE_BACKUP_PARTIAL = "backup_partial"
